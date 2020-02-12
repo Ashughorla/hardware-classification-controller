@@ -49,8 +49,8 @@ func (r *HardwareClassificationControllerReconciler) Reconcile(req ctrl.Request)
 		return ctrl.Result{}, err
 	}
 
-	extractedProfileList := hardwareClassification.Spec.MinimumHardwareConfiguration
-	r.Log.Info("Extracted Minimum hardware configuration successfully", "extractedProfileList", extractedProfileList)
+	extractedProfileList := hardwareClassification.Spec.ExpectedHardwareConfiguration
+	r.Log.Info("Extracted expected hardware configuration successfully", "extractedProfileList", extractedProfileList)
 
 	bmhHostList, err := fetchBmhHostList(ctx, r, hardwareClassification.Spec.Namespace)
 	if err != nil {

@@ -4,7 +4,7 @@ metadata:
   name: hardwareclassificationcontroller-sample
 spec:
   namespace: metal3
-  minimumValidationConfiguration:
+  expectedValidationConfiguration:
         - profileName: Profile 1
           minimumCPU:
                 count: 4

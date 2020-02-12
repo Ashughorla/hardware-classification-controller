@@ -36,9 +36,9 @@ spec:
           description: HardwareClassificationControllerSpec defines the desired state
             of HardwareClassificationController
           properties:
-            minimumValidationConfiguration:
+            expectedValidationConfiguration:
               items:
-                description: MinimumHardwareConfiguration details to match with the
+                description: ExpectedHardwareConfiguration details to match with the
                   host
                 properties:
                   firmware:
@@ -110,7 +110,7 @@ spec:
               description: Namespace under which BareMetalHosts are present
               type: string
           required:
-          - minimumValidationConfiguration
+          - expectedValidationConfiguration
           - namespace
           type: object
         status:

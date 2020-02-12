@@ -28,12 +28,12 @@ type HardwareClassificationControllerSpec struct {
 	// Important: Run "make" to regenerate code after modifying this file
 
 	// Namespace under which BareMetalHosts are present
-	Namespace                    string                         `json:"namespace"`
-	MinimumHardwareConfiguration []MinimumHardwareConfiguration `json:"minimumValidationConfiguration"`
+	Namespace                     string                          `json:"namespace"`
+	ExpectedHardwareConfiguration []ExpectedHardwareConfiguration `json:"expectedValidationConfiguration"`
 }
 
-// MinimumHardwareConfiguration details to match with the host
-type MinimumHardwareConfiguration struct {
+// ExpectedHardwareConfiguration details to match with the host
+type ExpectedHardwareConfiguration struct {
 	ProfileName string      `json:"profileName"`
 	MinimumCPU  MinimumCPU  `json:"minimumCPU"`
 	MinimumDisk MinimumDisk `json:"minimumDisk"`
