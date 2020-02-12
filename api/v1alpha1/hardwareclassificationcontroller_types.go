@@ -27,14 +27,72 @@ type HardwareClassificationControllerSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Foo is an example field of HardwareClassificationController. Edit HardwareClassificationController_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	// Namespace under which BareMetalHosts are present
+	Namespace                    string                         `json:"namespace"`
+	MinimumHardwareConfiguration []MinimumHardwareConfiguration `json:"minimumValidationConfiguration"`
+}
+
+// MinimumHardwareConfiguration details to match with the host
+type MinimumHardwareConfiguration struct {
+	ProfileName string      `json:"profileName"`
+	MinimumCPU  MinimumCPU  `json:"minimumCPU"`
+	MinimumDisk MinimumDisk `json:"minimumDisk"`
+	MinimumNICS MinimumNICS `json:"minimumNICS"`
+	MinimumRAM  int         `json:"minimumRAM"`
+	// +optional
+	SystemVendor SystemVendor `json:"systemVendor"`
+	// +optional
+	Firmware Firmware `json:"firmware"`
+}
+
+// Minimum cpu count
+type MinimumCPU struct {
+	Count int `json:"count"`
+}
+
+// MinimumDisk size and number of disks
+type MinimumDisk struct {
+	SizeBytesGB   int `json:"sizeBytesGB"`
+	NumberOfDisks int `json:"numberOfDisks"`
+}
+
+// MinimumNICS count of nics cards
+type MinimumNICS struct {
+	NumberOfNICS int `json:"numberOfNICS"`
+}
+
+// SystemVendor details
+type SystemVendor struct {
+	Name string `json:"name"`
+}
+
+// Firmware details
+type Firmware struct {
+	Version Version `json:"version"`
+}
+
+// Firmware Version details
+type Version struct {
+	// +optional
+	RAID string `json:"RAID"`
+	// +optional
+	BasebandManagement string `json:"BaseBandManagement"`
+	// +optional
+	BIOS string `json:"BIOS"`
+	// +optional
+	IDRAC string `json:"IDRAC"`
 }
 
 // HardwareClassificationControllerStatus defines the observed state of HardwareClassificationController
 type HardwareClassificationControllerStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+
+	// ErrorMessage will be set in the event that there is a terminal problem
+	// reconciling the BaremetalHost and will contain a more verbose string suitable
+	// for logging and human consumption.
+
+	ErrorMessage *string `json:"errorMessage,omitempty"`
 }
 
 // +kubebuilder:object:root=true
