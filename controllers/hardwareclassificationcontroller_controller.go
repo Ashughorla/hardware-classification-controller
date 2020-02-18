@@ -66,10 +66,10 @@ func (r *HardwareClassificationControllerReconciler) Reconcile(req ctrl.Request)
 	return ctrl.Result{}, nil
 }
 
-func fetchBmhHostList(ctx context.Context, r *HardwareClassificationControllerReconciler, namespace string) ([]bmh.BareMetalHost, error) {
+func fetchBmhHostList(ctx context.Context, r *HardwareClassificationControllerReconciler, namespace string) ([]*bmh.BareMetalHost, error) {
 
 	bmhHostList := bmh.BareMetalHostList{}
-	validHostList := []bmh.BareMetalHost{}
+	validHostList := []*bmh.BareMetalHost{}
 	hardwareClassification := &hwcc.HardwareClassificationController{}
 
 	opts := &client.ListOptions{
@@ -80,20 +80,28 @@ func fetchBmhHostList(ctx context.Context, r *HardwareClassificationControllerRe
 	err := r.Client.List(ctx, &bmhHostList, opts)
 	if err != nil {
 		setError(hardwareClassification, "Failed to get BareMetalHost List")
-		return validHostList, err
+		return nil, err
 	}
 
 	fmt.Println("**************************")
-	fmt.Printf("%+v", bmhHostList.Items)
+	// fmt.Printf("%+v", bmhHostList.Items)
 
 	fmt.Println("")
 	fmt.Println("")
 
-	for _, host := range bmhHostList.Items {
-		if host.Status.Provisioning.State == "ready" || host.Status.Provisioning.State == "inspecting" {
-			validHostList = append(validHostList, host)
-			fmt.Println("")
-			fmt.Printf("%+v", host)
+	// for _, host := range bmhHostList.Items {
+	// 	if host.Status.Provisioning.State == "ready" || host.Status.Provisioning.State == "inspecting" {
+	// 		validHostList = append(validHostList, &host)
+	// 		fmt.Println("")
+	// 		fmt.Printf("%+v", host)
+	// 	}
+	// }
+
+	for i, host := range bmhHostList.Items {
+		if host.Available() {
+			r.Log.Info("Host matched hostSelector for BareMetalMachine", "host", host.Name)
+			validHostList = append(validHostList, &bmhHostList.Items[i])
+
 		}
 	}
 
