@@ -98,11 +98,8 @@ func fetchBmhHostList(ctx context.Context, r *HardwareClassificationControllerRe
 	// }
 
 	for i, host := range bmhHostList.Items {
-		if host.Available() {
-			r.Log.Info("Host matched hostSelector for BareMetalMachine", "host", host.Name)
-			validHostList = append(validHostList, &bmhHostList.Items[i])
-
-		}
+		r.Log.Info("Host matched hostSelector for BareMetalMachine", "host", host.Name)
+		validHostList = append(validHostList, &bmhHostList.Items[i])
 	}
 
 	return validHostList, nil
