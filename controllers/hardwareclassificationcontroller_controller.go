@@ -59,7 +59,7 @@ func (r *HardwareClassificationControllerReconciler) Reconcile(req ctrl.Request)
 		return ctrl.Result{}, err
 	}
 
-	fmt.Printf("%+v", bmhHostList)
+	fmt.Printf("%+v", &bmhHostList)
 	// r.Log.Info("Fetched Baremetal host list successfully", "BareMetalHostList", bmhHostList)
 	// r.Log.Info("List", "BMH", bmhHostList)
 
