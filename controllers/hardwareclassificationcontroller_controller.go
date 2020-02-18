@@ -83,7 +83,11 @@ func fetchBmhHostList(ctx context.Context, r *HardwareClassificationControllerRe
 		return validHostList, err
 	}
 
+	fmt.Println("**************************")
 	fmt.Printf("%+v", bmhHostList.Items)
+
+	fmt.Println("")
+	fmt.Println("")
 
 	for _, host := range bmhHostList.Items {
 		if host.Status.Provisioning.State == "ready" || host.Status.Provisioning.State == "inspecting" {
