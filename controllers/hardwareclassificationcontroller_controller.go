@@ -96,3 +96,16 @@ func (r *HardwareClassificationControllerReconciler) SetupWithManager(mgr ctrl.M
 		For(&hwcc.HardwareClassificationController{}).
 		Complete(r)
 }
+
+// setLabel updates the given label when necessary and returns true
+// when a change is made or false when no change is made.
+func (host *BareMetalHost) setLabel(name, value string) bool {
+        if host.Labels == nil {
+                host.Labels = make(map[string]string)
+        }
+        if host.Labels[name] != value {
+                host.Labels[name] = value
+                return true
+        }
+        return false
+}
