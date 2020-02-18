@@ -59,7 +59,7 @@ func (r *HardwareClassificationControllerReconciler) Reconcile(req ctrl.Request)
 		return ctrl.Result{}, err
 	}
 
-	fmt.Println("Host list     ***********************************")
+	// fmt.Println("Host list     ***********************************")
 	fmt.Println(bmhHostList)
 	// r.Log.Info("Fetched Baremetal host list successfully", "BareMetalHostList", bmhHostList)
 	// r.Log.Info("List", "BMH", bmhHostList)
@@ -85,7 +85,7 @@ func fetchBmhHostList(ctx context.Context, r *HardwareClassificationControllerRe
 	}
 
 	fmt.Println("**************************")
-	// fmt.Printf("%+v", bmhHostList.Items)
+	fmt.Printf("%+v", bmhHostList.Items)
 
 	fmt.Println("")
 	fmt.Println("")
@@ -101,9 +101,9 @@ func fetchBmhHostList(ctx context.Context, r *HardwareClassificationControllerRe
 	for i, host := range bmhHostList.Items {
 		r.Log.Info("Host matched hostSelector for BareMetalMachine", "host", host.Name)
 		validHostList = append(validHostList, &bmhHostList.Items[i])
-		fmt.Println("")
-		fmt.Println("range")
-		fmt.Println(&bmhHostList.Items[i])
+		// fmt.Println("")
+		// fmt.Println("range")
+		// fmt.Println(&bmhHostList.Items[i])
 	}
 
 	return validHostList, nil
