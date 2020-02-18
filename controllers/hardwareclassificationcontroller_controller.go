@@ -17,6 +17,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 
 	hwcc "hardware-classification-controller/api/v1alpha1"
 
@@ -57,7 +58,9 @@ func (r *HardwareClassificationControllerReconciler) Reconcile(req ctrl.Request)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
-	r.Log.Info("Fetched Baremetal host list successfully", "BareMetalHostList", bmhHostList)
+
+	fmt.Printf("%+v", bmhHostList)
+	// r.Log.Info("Fetched Baremetal host list successfully", "BareMetalHostList", bmhHostList)
 
 	return ctrl.Result{}, nil
 }
