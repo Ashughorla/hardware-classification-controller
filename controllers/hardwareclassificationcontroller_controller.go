@@ -18,9 +18,10 @@ package controllers
 import (
 	"context"
 
+	hwcc "hardware-classification-controller/api/v1alpha1"
+
 	"github.com/go-logr/logr"
 	bmh "github.com/metal3-io/baremetal-operator/pkg/apis/metal3/v1alpha1"
-	hwcc "hardware-classification-controller/api/v1alpha1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/utils/pointer"
@@ -78,11 +79,12 @@ func fetchBmhHostList(ctx context.Context, r *HardwareClassificationControllerRe
 		return validHostList, err
 	}
 
-	for host := 0; host < len(bmhHostList.Items); host++ {
-		if bmhHostList.Items[host].Status.Provisioning.State == "ready" || bmhHostList.Items[host].Status.Provisioning.State == "inspecting" {
-			validHostList = append(validHostList, bmhHostList.Items[host])
+	for _, host := range bmhHostList.Items {
+		if host.Status.Provisioning.State == "ready" || host.Status.Provisioning.State == "inspecting" {
+			validHostList = append(validHostList, host)
 		}
 	}
+
 	return validHostList, nil
 }
 

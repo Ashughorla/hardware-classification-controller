@@ -34,7 +34,7 @@ type HardwareClassificationControllerSpec struct {
 
 // ExpectedHardwareConfiguration details to match with the host
 type ExpectedHardwareConfiguration struct {
-	ProfileName string      `json:"profileName"`
+	ProfileName string      `json:"profileName" validate:"required"`
 	MinimumCPU  MinimumCPU  `json:"minimumCPU"`
 	MinimumDisk MinimumDisk `json:"minimumDisk"`
 	MinimumNICS MinimumNICS `json:"minimumNICS"`
