@@ -100,12 +100,17 @@ func fetchBmhHostList(ctx context.Context, r *HardwareClassificationControllerRe
 	// 	}
 	// }
 
-	for i, host := range bmhHostList.Items {
-		r.Log.Info("Host matched hostSelector for BareMetalMachine", "host", host.Name)
-		validHostList = append(validHostList, &bmhHostList.Items[i])
-		fmt.Println("")
+	for _, host := range bmhHostList.Items {
 		fmt.Println("range************")
-		fmt.Println(&bmhHostList.Items[i].Status)
+		r.Log.Info("Host matched hostSelector for BareMetalMachine", "BaremetalHostList", host.Status)
+		validHostList = append(validHostList, &host)
+		fmt.Println("")
+		fmt.Println("")
+		fmt.Println("")
+		fmt.Println(&host.Status)
+		fmt.Println("")
+		fmt.Println("")
+		fmt.Println("")
 	}
 
 	return validHostList, nil
@@ -116,6 +121,7 @@ func setError(hwcc *hwcc.HardwareClassificationController, message string) {
 	hwcc.Status.ErrorMessage = pointer.StringPtr(message)
 }
 
+//SetupWithManager SetupWithManager
 func (r *HardwareClassificationControllerReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&hwcc.HardwareClassificationController{}).
