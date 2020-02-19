@@ -21,6 +21,8 @@ import (
 
 	hwcc "hardware-classification-controller/api/v1alpha1"
 
+	validation "hardware-classification-controller/validate"
+
 	"github.com/go-logr/logr"
 	bmh "github.com/metal3-io/baremetal-operator/pkg/apis/metal3/v1alpha1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -55,10 +57,12 @@ func (r *HardwareClassificationControllerReconciler) Reconcile(req ctrl.Request)
 	fmt.Println(extractedProfileList)
 	// r.Log.Info("Extracted expected hardware configuration successfully", "extractedProfileList", extractedProfileList)
 
-	_, err := fetchBmhHostList(ctx, r, hardwareClassification.Spec.Namespace)
+	bmhHostList, err := fetchBmhHostList(ctx, r, hardwareClassification.Spec.Namespace)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
+
+	validation.Comparison(bmhHostList, extractedProfileList)
 
 	return ctrl.Result{}, nil
 }
@@ -85,9 +89,6 @@ func fetchBmhHostList(ctx context.Context, r *HardwareClassificationControllerRe
 			fmt.Println("range************")
 			validHostList = append(validHostList, host)
 			fmt.Printf("%+v", host.Status.HardwareDetails)
-			fmt.Println("")
-			fmt.Println("")
-			fmt.Println("")
 		}
 
 	}
