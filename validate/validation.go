@@ -38,6 +38,6 @@ func Comparison(hosts []bmh.BareMetalHost, profiles []hwcc.ExpectedHardwareConfi
 	}
 
 	fmt.Println("Valid host list*************************")
-	fmt.Printf("%+v", validHost)
+	fmt.Println(validHost)
 
 }
