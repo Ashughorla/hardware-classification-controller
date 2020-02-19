@@ -110,7 +110,13 @@ func fetchBmhHostList(ctx context.Context, r *HardwareClassificationControllerRe
 		fmt.Println(&host.Status)
 		fmt.Println("")
 		fmt.Println("")
+		fmt.Println("Status")
+		fmt.Println(*&host.Status.HardwareProfile)
+		fmt.Println(host.Status.HardwareDetails)
 		fmt.Println("")
+		fmt.Println("")
+		fmt.Println("Spec")
+		fmt.Println(*&host.Spec.HardwareProfile)
 	}
 
 	return validHostList, nil
