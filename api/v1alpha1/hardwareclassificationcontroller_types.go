@@ -52,8 +52,8 @@ type MinimumCPU struct {
 
 // MinimumDisk size and number of disks
 type MinimumDisk struct {
-	SizeBytesGB   int `json:"sizeBytesGB"`
-	NumberOfDisks int `json:"numberOfDisks"`
+	SizeBytesGB   int64 `json:"sizeBytesGB"`
+	NumberOfDisks int   `json:"numberOfDisks"`
 }
 
 // MinimumNICS count of nics cards
