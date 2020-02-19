@@ -60,19 +60,13 @@ func (r *HardwareClassificationControllerReconciler) Reconcile(req ctrl.Request)
 		return ctrl.Result{}, err
 	}
 
-	// fmt.Println("Host list     ***********************************")
-	// fmt.Println(bmhHostList)
-
-	// r.Log.Info("Fetched Baremetal host list successfully", "BareMetalHostList", bmhHostList)
-	// r.Log.Info("List", "BMH", bmhHostList)
-
 	return ctrl.Result{}, nil
 }
 
-func fetchBmhHostList(ctx context.Context, r *HardwareClassificationControllerReconciler, namespace string) ([]*bmh.BareMetalHost, error) {
+func fetchBmhHostList(ctx context.Context, r *HardwareClassificationControllerReconciler, namespace string) ([]bmh.BareMetalHost, error) {
 
 	bmhHostList := bmh.BareMetalHostList{}
-	validHostList := []*bmh.BareMetalHost{}
+	validHostList := []bmh.BareMetalHost{}
 	hardwareClassification := &hwcc.HardwareClassificationController{}
 
 	opts := &client.ListOptions{
@@ -86,38 +80,16 @@ func fetchBmhHostList(ctx context.Context, r *HardwareClassificationControllerRe
 		return nil, err
 	}
 
-	// fmt.Println("**************************")
-	// fmt.Printf("%+v", bmhHostList.Items)
-
-	// fmt.Println("")
-	// fmt.Println("")
-
-	// for _, host := range bmhHostList.Items {
-	// 	if host.Status.Provisioning.State == "ready" || host.Status.Provisioning.State == "inspecting" {
-	// 		validHostList = append(validHostList, &host)
-	// 		fmt.Println("")
-	// 		fmt.Printf("%+v", host)
-	// 	}
-	// }
-
 	for _, host := range bmhHostList.Items {
-		fmt.Println("range************")
-		r.Log.Info("Host matched hostSelector for BareMetalMachine", "BaremetalHostList", host.Status)
-		validHostList = append(validHostList, &host)
-		fmt.Println("")
-		fmt.Println("")
-		fmt.Println("")
-		fmt.Println(&host.Status)
-		fmt.Println("")
-		fmt.Println("")
-		fmt.Println("Status")
-		fmt.Println(*&host.Status.HardwareProfile)
-		fmt.Println("")
-		fmt.Printf("%+v", host.Status.HardwareDetails)
-		fmt.Println("")
-		fmt.Println("")
-		fmt.Println("Spec")
-		fmt.Println(*&host.Spec.HardwareProfile)
+		if host.Status.Provisioning.State == "ready" || host.Status.Provisioning.State == "inspecting" {
+			fmt.Println("range************")
+			validHostList = append(validHostList, host)
+			fmt.Printf("%+v", host.Status.HardwareDetails)
+			fmt.Println("")
+			fmt.Println("")
+			fmt.Println("")
+		}
+
 	}
 
 	return validHostList, nil
