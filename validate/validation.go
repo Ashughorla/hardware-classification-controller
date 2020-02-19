@@ -12,7 +12,6 @@ func Comparison(hosts []bmh.BareMetalHost, profiles []hwcc.ExpectedHardwareConfi
 
 	fmt.Println("********************************")
 	fmt.Println("Validation wali file")
-	fmt.Printf("%+v", hosts)
 	for _, host := range hosts {
 		fmt.Printf("%+v", host.Status.HardwareDetails)
 		fmt.Println("")
