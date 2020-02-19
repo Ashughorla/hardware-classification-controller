@@ -52,16 +52,18 @@ func (r *HardwareClassificationControllerReconciler) Reconcile(req ctrl.Request)
 	}
 
 	extractedProfileList := hardwareClassification.Spec.ExpectedHardwareConfiguration
-	r.Log.Info("Extracted expected hardware configuration successfully", "extractedProfileList", extractedProfileList)
+	fmt.Println(extractedProfileList)
+	// r.Log.Info("Extracted expected hardware configuration successfully", "extractedProfileList", extractedProfileList)
 
-	bmhHostList, err := fetchBmhHostList(ctx, r, hardwareClassification.Spec.Namespace)
+	_, err := fetchBmhHostList(ctx, r, hardwareClassification.Spec.Namespace)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
 
 	// fmt.Println("Host list     ***********************************")
-	fmt.Println(bmhHostList)
-	r.Log.Info("Fetched Baremetal host list successfully", "BareMetalHostList", bmhHostList)
+	// fmt.Println(bmhHostList)
+
+	// r.Log.Info("Fetched Baremetal host list successfully", "BareMetalHostList", bmhHostList)
 	// r.Log.Info("List", "BMH", bmhHostList)
 
 	return ctrl.Result{}, nil
@@ -84,11 +86,11 @@ func fetchBmhHostList(ctx context.Context, r *HardwareClassificationControllerRe
 		return nil, err
 	}
 
-	fmt.Println("**************************")
-	fmt.Printf("%+v", bmhHostList.Items)
+	// fmt.Println("**************************")
+	// fmt.Printf("%+v", bmhHostList.Items)
 
-	fmt.Println("")
-	fmt.Println("")
+	// fmt.Println("")
+	// fmt.Println("")
 
 	// for _, host := range bmhHostList.Items {
 	// 	if host.Status.Provisioning.State == "ready" || host.Status.Provisioning.State == "inspecting" {
