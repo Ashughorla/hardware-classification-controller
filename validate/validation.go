@@ -20,10 +20,10 @@ func Comparison(hosts []bmh.BareMetalHost, profiles []hwcc.ExpectedHardwareConfi
 		fmt.Printf("Ram Count :- %+v \n", host.Status.HardwareDetails.RAMMebibytes)
 
 		for _, profile := range profiles {
-			if profile.MinimumCPU.Count < host.Status.HardwareDetails.CPU.Count &&
-				profile.MinimumDisk.SizeBytesGB < int64(host.Status.HardwareDetails.Storage[0].SizeBytes*1024*1024) &&
-				profile.MinimumNICS.NumberOfNICS < len(host.Status.HardwareDetails.NIC) &&
-				profile.MinimumRAM < host.Status.HardwareDetails.RAMMebibytes {
+			if profile.MinimumCPU.Count <= host.Status.HardwareDetails.CPU.Count &&
+				profile.MinimumDisk.SizeBytesGB <= int64(host.Status.HardwareDetails.Storage[0].SizeBytes*1024*1024) &&
+				profile.MinimumNICS.NumberOfNICS <= len(host.Status.HardwareDetails.NIC) &&
+				profile.MinimumRAM <= host.Status.HardwareDetails.RAMMebibytes {
 				newHost, ok := validHost[host.Status.HardwareDetails]
 				if ok {
 					validHost[host.Status.HardwareDetails] = append(newHost, profile)
@@ -31,7 +31,6 @@ func Comparison(hosts []bmh.BareMetalHost, profiles []hwcc.ExpectedHardwareConfi
 					var validProfile []hwcc.ExpectedHardwareConfiguration
 					validHost[host.Status.HardwareDetails] = append(validProfile, profile)
 				}
-
 			}
 		}
 	}
