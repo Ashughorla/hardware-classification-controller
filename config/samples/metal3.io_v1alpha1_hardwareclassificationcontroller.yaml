@@ -7,12 +7,12 @@ spec:
   expectedValidationConfiguration:
         - profileName: Profile 1
           minimumCPU:
-                count: 4
+                count: 2
           minimumDisk:
-                sizeBytesGB: 30
+                sizeBytesGB: 35
                 numberOfDisks: 2
           minimumNICS:
-                numberOfNICS: 4
+                numberOfNICS: 2
           minimumRAM: 8
           systemVendor:
                 name: Dell Inc.
