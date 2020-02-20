@@ -13,18 +13,7 @@ func Comparison(hosts []bmh.BareMetalHost, profiles []hwcc.ExpectedHardwareConfi
 	validHost := make(map[interface{}][]hwcc.ExpectedHardwareConfiguration)
 	fmt.Println("Inside Comparison file")
 	for _, host := range hosts {
-		// fmt.Printf("\n\n\nHardware details :- %+v \n\n", host.Status.HardwareDetails)
-		// fmt.Printf("CPU Count :- %+v \n", host.Status.HardwareDetails.CPU.Count)
-		// fmt.Printf("Stoarage Count :- %+v \n", host.Status.HardwareDetails.Storage)
-		// fmt.Printf("Nics Count :- %+v \n", host.Status.HardwareDetails.NIC)
-		// fmt.Printf("Ram Count :- %+v \n", host.Status.HardwareDetails.RAMMebibytes)
 		for _, profile := range profiles {
-
-			fmt.Println(host.Status.HardwareDetails.CPU.Count, "  CPU  ", profile.MinimumCPU.Count)
-			fmt.Println(int64(host.Status.HardwareDetails.Storage[0].SizeBytes), "  HDD  ", (profile.MinimumDisk.SizeBytesGB * 1024 * 1024))
-			fmt.Println(len(host.Status.HardwareDetails.NIC), "  NICS  ", profile.MinimumNICS.NumberOfNICS)
-			fmt.Println(host.Status.HardwareDetails.RAMMebibytes, "  RAM  ", (profile.MinimumRAM * 1024))
-
 			if host.Status.HardwareDetails.CPU.Count >= profile.MinimumCPU.Count &&
 				int64(host.Status.HardwareDetails.Storage[0].SizeBytes) >= (profile.MinimumDisk.SizeBytesGB*1024*1024) &&
 				len(host.Status.HardwareDetails.NIC) >= profile.MinimumNICS.NumberOfNICS &&
@@ -34,13 +23,12 @@ func Comparison(hosts []bmh.BareMetalHost, profiles []hwcc.ExpectedHardwareConfi
 					validHost[host.Status.HardwareDetails] = append(newHost, profile)
 				} else {
 					var validProfile []hwcc.ExpectedHardwareConfiguration
-					validHost[host.Status.HardwareDetails] = append(validProfile, profile)
+					validHost[*host.Status.HardwareDetails] = append(validProfile, profile)
 				}
 			}
 		}
 	}
 
-	fmt.Println("Valid host list*************************")
 	fmt.Println(validHost)
 
 }
