@@ -18,8 +18,12 @@ func Comparison(hosts []bmh.BareMetalHost, profiles []hwcc.ExpectedHardwareConfi
 		// fmt.Printf("Stoarage Count :- %+v \n", host.Status.HardwareDetails.Storage)
 		// fmt.Printf("Nics Count :- %+v \n", host.Status.HardwareDetails.NIC)
 		// fmt.Printf("Ram Count :- %+v \n", host.Status.HardwareDetails.RAMMebibytes)
-
 		for _, profile := range profiles {
+
+			fmt.Println(host.Status.HardwareDetails.CPU.Count, "    ", profile.MinimumCPU.Count)
+			fmt.Println(int64(host.Status.HardwareDetails.Storage[0].SizeBytes), "    ", (profile.MinimumDisk.SizeBytesGB * 1024 * 1024))
+			fmt.Println(len(host.Status.HardwareDetails.NIC), "    ", profile.MinimumNICS.NumberOfNICS)
+			fmt.Println(host.Status.HardwareDetails.RAMMebibytes, "    ", (profile.MinimumRAM * 1024))
 
 			if host.Status.HardwareDetails.CPU.Count >= profile.MinimumCPU.Count &&
 				int64(host.Status.HardwareDetails.Storage[0].SizeBytes) >= (profile.MinimumDisk.SizeBytesGB*1024*1024) &&
