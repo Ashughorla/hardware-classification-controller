@@ -62,7 +62,12 @@ func (r *HardwareClassificationControllerReconciler) Reconcile(req ctrl.Request)
 		return ctrl.Result{}, err
 	}
 
-	validation.Comparison(bmhHostList, extractedProfileList)
+	validHostList := validation.Comparison(bmhHostList, extractedProfileList)
+
+	for host, profile := range validHostList {
+		fmt.Println(host)
+		fmt.Println(profile)
+	}
 
 	return ctrl.Result{}, nil
 }

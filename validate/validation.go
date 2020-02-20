@@ -1,14 +1,13 @@
 package validate
 
 import (
-	"fmt"
 	hwcc "hardware-classification-controller/api/v1alpha1"
 
 	bmh "github.com/metal3-io/baremetal-operator/pkg/apis/metal3/v1alpha1"
 )
 
 //Comparison compare the host against the profile and filter the valid host
-func Comparison(hosts []bmh.BareMetalHost, profiles []hwcc.ExpectedHardwareConfiguration) {
+func Comparison(hosts []bmh.BareMetalHost, profiles []hwcc.ExpectedHardwareConfiguration) map[interface{}][]hwcc.ExpectedHardwareConfiguration {
 
 	validHost := make(map[interface{}][]hwcc.ExpectedHardwareConfiguration)
 	for _, host := range hosts {
@@ -19,15 +18,15 @@ func Comparison(hosts []bmh.BareMetalHost, profiles []hwcc.ExpectedHardwareConfi
 				host.Status.HardwareDetails.RAMMebibytes >= (profile.MinimumRAM*1024) {
 				newHost, ok := validHost[host.Status.HardwareDetails]
 				if ok {
-					validHost[*host.Status.HardwareDetails] = append(newHost, profile)
+					validHost[host.Status.HardwareDetails] = append(newHost, profile)
 				} else {
 					var validProfile []hwcc.ExpectedHardwareConfiguration
-					validHost[*host.Status.HardwareDetails] = append(validProfile, profile)
+					validHost[host.Status.HardwareDetails] = append(validProfile, profile)
 				}
 			}
 		}
 	}
 
-	fmt.Println(validHost)
+	return validHost
 
 }
