@@ -13,7 +13,7 @@ func Comparison(hosts []bmh.BareMetalHost, profiles []hwcc.ExpectedHardwareConfi
 	validHost := make(map[interface{}][]hwcc.ExpectedHardwareConfiguration)
 	fmt.Println("Inside Comparison file")
 	for _, host := range hosts {
-		// fmt.Printf("%+v", host.Status.HardwareDetails)
+		fmt.Printf("\n\n\nHardware details :- %+v \n\n", host.Status.HardwareDetails)
 		fmt.Printf("CPU Count :- %+v \n", host.Status.HardwareDetails.CPU.Count)
 		fmt.Printf("Stoarage Count :- %+v \n", host.Status.HardwareDetails.Storage)
 		fmt.Printf("Nics Count :- %+v \n", host.Status.HardwareDetails.NIC)
@@ -34,7 +34,6 @@ func Comparison(hosts []bmh.BareMetalHost, profiles []hwcc.ExpectedHardwareConfi
 
 			}
 		}
-
 	}
 
 	fmt.Println("Valid host list*************************")
