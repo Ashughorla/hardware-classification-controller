@@ -11,7 +11,6 @@ import (
 func Comparison(hosts []bmh.BareMetalHost, profiles []hwcc.ExpectedHardwareConfiguration) {
 
 	validHost := make(map[interface{}][]hwcc.ExpectedHardwareConfiguration)
-	fmt.Println("Inside Comparison file")
 	for _, host := range hosts {
 		for _, profile := range profiles {
 			if host.Status.HardwareDetails.CPU.Count >= profile.MinimumCPU.Count &&
@@ -20,7 +19,7 @@ func Comparison(hosts []bmh.BareMetalHost, profiles []hwcc.ExpectedHardwareConfi
 				host.Status.HardwareDetails.RAMMebibytes >= (profile.MinimumRAM*1024) {
 				newHost, ok := validHost[host.Status.HardwareDetails]
 				if ok {
-					validHost[host.Status.HardwareDetails] = append(newHost, profile)
+					validHost[*host.Status.HardwareDetails] = append(newHost, profile)
 				} else {
 					var validProfile []hwcc.ExpectedHardwareConfiguration
 					validHost[*host.Status.HardwareDetails] = append(validProfile, profile)
