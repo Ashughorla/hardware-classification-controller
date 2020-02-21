@@ -72,11 +72,11 @@ func (r *HardwareClassificationControllerReconciler) Reconcile(req ctrl.Request)
 
 		host, ok := hostDetails.(*bmh.HardwareDetails)
 		if ok {
-			fmt.Println("Host :- ", host.Hostname)
+			fmt.Println("Host :- \n\n", host.Hostname)
 		}
 
-		fmt.Println("Profiles")
-		fmt.Printf("%+v", profile)
+		fmt.Println("Profiles \n\n")
+		fmt.Printf("%+v \n\n", profile)
 	}
 
 	return ctrl.Result{}, nil
