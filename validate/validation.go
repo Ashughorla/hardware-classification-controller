@@ -6,7 +6,7 @@ import (
 	bmh "github.com/metal3-io/baremetal-operator/pkg/apis/metal3/v1alpha1"
 )
 
-//Comparison compare the host against the profile and filter the valid host
+//Comparison function compares the host against the profile and filter the valid host
 func Comparison(hosts []bmh.BareMetalHost, profiles []hwcc.ExpectedHardwareConfiguration) map[interface{}][]hwcc.ExpectedHardwareConfiguration {
 
 	validHost := make(map[interface{}][]hwcc.ExpectedHardwareConfiguration)

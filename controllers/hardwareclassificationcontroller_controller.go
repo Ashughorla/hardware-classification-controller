@@ -45,6 +45,7 @@ type HardwareClassificationControllerReconciler struct {
 func (r *HardwareClassificationControllerReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
 
+	// Get HardwareClassificationController to get values for Namespace and ExpectedHardwareConfiguration
 	hardwareClassification := &hwcc.HardwareClassificationController{}
 	if err := r.Client.Get(ctx, req.NamespacedName, hardwareClassification); err != nil {
 		if apierrors.IsNotFound(err) {
@@ -53,15 +54,17 @@ func (r *HardwareClassificationControllerReconciler) Reconcile(req ctrl.Request)
 		return ctrl.Result{}, err
 	}
 
+	// Get ExpectedHardwareConfiguraton from hardwareClassification
 	extractedProfileList := hardwareClassification.Spec.ExpectedHardwareConfiguration
 	fmt.Println(extractedProfileList)
-	// r.Log.Info("Extracted expected hardware configuration successfully", "extractedProfileList", extractedProfileList)
 
+	// Get a list of BaremetalHost from Baremetal-Operator and metal3 namespace
 	bmhHostList, err := fetchBmhHostList(ctx, r, hardwareClassification.Spec.Namespace)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
 
+	// Pass the baremetal host list and extractedhardwareProfile to comparison function
 	validHostList := validation.Comparison(bmhHostList, extractedProfileList)
 
 	for host, profile := range validHostList {
@@ -72,6 +75,7 @@ func (r *HardwareClassificationControllerReconciler) Reconcile(req ctrl.Request)
 	return ctrl.Result{}, nil
 }
 
+// fetchBmhHostList this function will fetch the baremetal host list from the baremetal operator and return it to the reconciler functioni
 func fetchBmhHostList(ctx context.Context, r *HardwareClassificationControllerReconciler, namespace string) ([]bmh.BareMetalHost, error) {
 
 	bmhHostList := bmh.BareMetalHostList{}
@@ -82,13 +86,14 @@ func fetchBmhHostList(ctx context.Context, r *HardwareClassificationControllerRe
 		Namespace: namespace,
 	}
 
-	// get list of BMH
+	// Get list of BareMetalHost
 	err := r.Client.List(ctx, &bmhHostList, opts)
 	if err != nil {
 		setError(hardwareClassification, "Failed to get BareMetalHost List")
 		return nil, err
 	}
 
+	// Get hosts in ready and inspecting status from bmhHostList
 	for _, host := range bmhHostList.Items {
 		if host.Status.Provisioning.State == "ready" || host.Status.Provisioning.State == "inspecting" {
 			validHostList = append(validHostList, host)
