@@ -68,11 +68,12 @@ func (r *HardwareClassificationControllerReconciler) Reconcile(req ctrl.Request)
 	validHostList := validation.Comparison(bmhHostList, extractedProfileList)
 
 	fmt.Println("Hostname and valid profile details:-")
+	fmt.Println("*********************************************")
 	for hostDetails, profile := range validHostList {
 
 		host, ok := hostDetails.(*bmh.HardwareDetails)
 		if ok {
-			fmt.Println("Host :- \n\n", host.Hostname)
+			fmt.Println("Host :- ", host.Hostname)
 		}
 
 		fmt.Println("Profiles")
