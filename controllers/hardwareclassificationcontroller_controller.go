@@ -77,6 +77,7 @@ func (r *HardwareClassificationControllerReconciler) Reconcile(req ctrl.Request)
 
 		fmt.Println("Profiles \n\n")
 		fmt.Printf("%+v \n\n", profile)
+		fmt.Println("*********************************************")
 	}
 
 	return ctrl.Result{}, nil
