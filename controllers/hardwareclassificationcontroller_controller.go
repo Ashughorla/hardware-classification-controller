@@ -56,7 +56,6 @@ func (r *HardwareClassificationControllerReconciler) Reconcile(req ctrl.Request)
 
 	// Get ExpectedHardwareConfiguraton from hardwareClassification
 	extractedProfileList := hardwareClassification.Spec.ExpectedHardwareConfiguration
-	fmt.Println(extractedProfileList)
 
 	// Get a list of BaremetalHost from Baremetal-Operator and metal3 namespace
 	bmhHostList, err := fetchBmhHostList(ctx, r, hardwareClassification.Spec.Namespace)
