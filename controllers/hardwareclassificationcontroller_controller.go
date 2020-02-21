@@ -67,9 +67,16 @@ func (r *HardwareClassificationControllerReconciler) Reconcile(req ctrl.Request)
 	// Pass the baremetal host list and extractedhardwareProfile to comparison function
 	validHostList := validation.Comparison(bmhHostList, extractedProfileList)
 
-	for host, profile := range validHostList {
-		fmt.Println(host)
-		fmt.Println(profile)
+	fmt.Println("Hostname and valid profile details:-")
+	for hostDetails, profile := range validHostList {
+
+		host, ok := hostDetails.(bmh.BareMetalHost)
+		if ok {
+			fmt.Println("Host :- ", host.Status.HardwareDetails.Hostname)
+		}
+
+		fmt.Println("Profiles")
+		fmt.Printf("%+v", profile)
 	}
 
 	return ctrl.Result{}, nil
