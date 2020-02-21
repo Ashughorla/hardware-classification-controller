@@ -22,17 +22,20 @@ import (
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
 
+	hwcc "hardware-classification-controller/api/v1alpha1"
+
 	bmoapis "github.com/metal3-io/baremetal-operator/pkg/apis"
 	bmh "github.com/metal3-io/baremetal-operator/pkg/apis/metal3/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/klog/klogr"
+	ctrl "sigs.k8s.io/controller-runtime"
 	fakeclient "sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
-var _ = Describe("Test Fech BMH List", func() {
+var _ = Describe("HardwareClassificationController Controller", func() {
 
-	//Creating the hosts
+	//Creating sample hosts
 	host1 := bmh.BareMetalHost{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "host1",
@@ -78,6 +81,53 @@ var _ = Describe("Test Fech BMH List", func() {
 		},
 	}
 
+	//creating expectedHardwareConfiguration for Profile1 and Profile2
+	expectedHardwareConfiguration_1 := hwcc.ExpectedHardwareConfiguration{
+		ProfileName: "Profile1",
+		MinimumCPU: hwcc.MinimumCPU{
+			Count: 4,
+		},
+		MinimumRAM: 16,
+		MinimumDisk: hwcc.MinimumDisk{
+			SizeBytesGB:   12,
+			NumberOfDisks: 10,
+		},
+		MinimumNICS: hwcc.MinimumNICS{
+			NumberOfNICS: 4,
+		},
+		SystemVendor: hwcc.SystemVendor{
+			Name: "Dell Inc",
+		},
+		Firmware: hwcc.Firmware{
+			Version: hwcc.Version{
+				RAID: "RAID1",
+			},
+		},
+	}
+
+	expectedHardwareConfiguration_2 := hwcc.ExpectedHardwareConfiguration{
+		ProfileName: "Proffile2",
+		MinimumCPU: hwcc.MinimumCPU{
+			Count: 8,
+		},
+		MinimumRAM: 32,
+		MinimumDisk: hwcc.MinimumDisk{
+			SizeBytesGB:   32,
+			NumberOfDisks: 10,
+		},
+		MinimumNICS: hwcc.MinimumNICS{
+			NumberOfNICS: 8,
+		},
+	}
+
+	expectedHardwareConfiguration := hwcc.HardwareClassificationController{
+		Spec: hwcc.HardwareClassificationControllerSpec{
+			Namespace: "metal3",
+			ExpectedHardwareConfiguration: []hwcc.ExpectedHardwareConfiguration{expectedHardwareConfiguration_1,
+				expectedHardwareConfiguration_2},
+		},
+	}
+
 	type testCasefetchBmhHostList struct {
 		Hosts         []runtime.Object
 		ExpectedHosts []bmh.BareMetalHost
@@ -102,7 +152,7 @@ var _ = Describe("Test Fech BMH List", func() {
 			}
 
 			if len(tc.ExpectedHosts) == 0 {
-				Expect(len(result)).To(Equal(len(tc.ExpectedHosts)))
+				Expect(len(result)).To(Equal(0))
 			} else {
 				for i, host := range tc.ExpectedHosts {
 					Expect(result[i].Name).To(Equal(host.Name))
@@ -126,6 +176,33 @@ var _ = Describe("Test Fech BMH List", func() {
 			ExpectedHosts: []bmh.BareMetalHost{},
 		}),
 	)
+
+	type testCaseExtractHarwareConfigration struct {
+		HardwareConfigurations []runtime.Object
+	}
+
+	DescribeTable("Test Extract Harware Configration",
+		func(tc testCaseExtractHarwareConfigration) {
+
+			c := fakeclient.NewFakeClientWithScheme(setupSchemeMm(), tc.HardwareConfigurations...)
+			r := &HardwareClassificationControllerReconciler{
+				Client: c,
+				Log:    klogr.New(),
+			}
+			req := ctrl.Request{}
+			_, err := r.Reconcile(req)
+
+			if err != nil {
+				Expect(err).To(HaveOccurred())
+			} else {
+				Expect(err).NotTo(HaveOccurred())
+			}
+		},
+
+		Entry("Extract minimum hardware configuration", testCaseExtractHarwareConfigration{
+			HardwareConfigurations: []runtime.Object{&expectedHardwareConfiguration},
+		}),
+	)
 })
 
 //-----------------
@@ -134,6 +211,9 @@ var _ = Describe("Test Fech BMH List", func() {
 func setupSchemeMm() *runtime.Scheme {
 	s := runtime.NewScheme()
 	if err := bmoapis.AddToScheme(s); err != nil {
+		panic(err)
+	}
+	if err := hwcc.AddToScheme(s); err != nil {
 		panic(err)
 	}
 	return s
