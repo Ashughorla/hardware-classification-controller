@@ -75,7 +75,8 @@ func (r *HardwareClassificationControllerReconciler) Reconcile(req ctrl.Request)
 			fmt.Println("Host :- \n\n", host.Hostname)
 		}
 
-		fmt.Println("Profiles \n\n")
+		fmt.Println("Profiles")
+		fmt.Println("")
 		fmt.Printf("%+v \n\n", profile)
 		fmt.Println("*********************************************")
 	}
