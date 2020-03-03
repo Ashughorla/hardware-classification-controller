@@ -16,7 +16,7 @@ func Comparison(hosts []bmh.BareMetalHost, profiles []hwcc.ExpectedHardwareConfi
 				int64(host.Status.HardwareDetails.Storage[0].SizeBytes) >= (profile.MinimumDisk.SizeBytesGB*1024*1024) &&
 				len(host.Status.HardwareDetails.NIC) >= profile.MinimumNICS.NumberOfNICS &&
 				host.Status.HardwareDetails.RAMMebibytes >= (profile.MinimumRAM*1024) {
-				newHost, ok := validHost[host]
+				newHost, ok := validHost[&host]
 				if ok {
 					validHost[host.Status.HardwareDetails] = append(newHost, profile)
 				} else {
