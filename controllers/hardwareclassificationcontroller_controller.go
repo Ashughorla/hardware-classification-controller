@@ -70,10 +70,9 @@ func (r *HardwareClassificationControllerReconciler) Reconcile(req ctrl.Request)
 	fmt.Println("*********************************************")
 	for hostDetails, profile := range validHostList {
 
-	
 		fmt.Println(hostDetails)
 
-		host, ok := hostDetails.(*bmh.BareMetalHost)
+		host, ok := hostDetails.(bmh.BareMetalHost)
 		if ok {
 			fmt.Println("Host :- ", host.Status.HardwareDetails.Hostname)
 		}
