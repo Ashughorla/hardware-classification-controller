@@ -70,13 +70,21 @@ func (r *HardwareClassificationControllerReconciler) Reconcile(req ctrl.Request)
 	fmt.Println("*********************************************")
 	for hostDetails, profile := range validHostList {
 
+		fmt.Println("Ashu Profiles")
+		fmt.Println(profile)
+		fmt.Println("Ashu hostdetails")
 		fmt.Println(hostDetails)
-
-		host, ok := hostDetails.(bmh.BareMetalHost)
+		host, ok := hostDetails.(*bmh.BareMetalHost)
 		if ok {
 			fmt.Println("Host :- ", host.Status.HardwareDetails.Hostname)
 		}
-
+		var retur bool
+		retur = setLabel(host, profile)
+		if retur == true {
+			fmt.Printf("Label set\n")
+		} else {
+			fmt.Printf("Label not set\n")
+		}
 		fmt.Println("Profiles")
 		fmt.Println("")
 		fmt.Printf("%+v \n\n", profile)
@@ -125,4 +133,27 @@ func (r *HardwareClassificationControllerReconciler) SetupWithManager(mgr ctrl.M
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&hwcc.HardwareClassificationController{}).
 		Complete(r)
+}
+
+// setLabel updates the given label when necessary and returns true
+// when a change is made or false when no change is made..
+func setLabel(host *bmh.BareMetalHost, profile []hwcc.ExpectedHardwareConfiguration) bool {
+	var ProfileName string
+	if host.Labels == nil {
+		fmt.Printf("Ashu : no Label found for Host, creating one.\n")
+		host.Labels = make(map[string]string)
+	}
+	for _, elem := range profile {
+		ProfileName = elem.ProfileName
+	}
+
+	fmt.Printf("Ashu ProfileName: %s\n", ProfileName)
+
+	fmt.Printf("Ashu :label found for host %v are %v\n", host.Status.HardwareDetails.Hostname, host.Labels)
+	if host.Labels[host.Status.HardwareDetails.Hostname] != ProfileName {
+		host.Labels[host.Status.HardwareDetails.Hostname] = ProfileName
+		fmt.Printf("Ashu :label after set for host %v\n", host.Labels)
+		return true
+	}
+	return false
 }

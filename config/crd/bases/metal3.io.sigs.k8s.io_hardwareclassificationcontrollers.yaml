@@ -73,6 +73,7 @@ spec:
                       numberOfDisks:
                         type: integer
                       sizeBytesGB:
+                        format: int64
                         type: integer
                     required:
                     - numberOfDisks
