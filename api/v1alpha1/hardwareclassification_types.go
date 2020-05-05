@@ -16,6 +16,7 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -27,8 +28,61 @@ type HardwareClassificationSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Foo is an example field of HardwareClassification. Edit HardwareClassification_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	// ExpectedHardwareConfiguration defines expected hardware configurations for CPU, RAM, Disk, NIC.
+	ExpectedHardwareConfiguration ExpectedHardwareConfiguration `json:"expectedValidationConfiguration"`
+}
+
+// ExpectedHardwareConfiguration details to match with the host
+type ExpectedHardwareConfiguration struct {
+	Namespace string `json:"namespace"`
+	// +optional
+	CPU CPU `json:"CPU"`
+	// +optional
+	Disk Disk `json:"Disk"`
+	// +optional
+	NIC NIC `json:"NIC"`
+	// +optional
+	RAM RAM `json:"RAM"`
+}
+
+// CPU count
+type CPU struct {
+	// +optional
+	MinimumCount int `json:"minimumCount"`
+	// +optional
+	MaximumCount int `json:"maximumCount"`
+	// +optional
+	MinimumSpeed resource.Quantity `json:"minimumSpeed"`
+	// +optional
+	MaximumSpeed resource.Quantity `json:"maximumSpeed"`
+}
+
+// Disk size and number of disks
+type Disk struct {
+	// +optional
+	MinimumCount int `json:"minimumCount"`
+	// +optional
+	MinimumIndividualSizeGB int64 `json:"minimumIndividualSizeGB"`
+	// +optional
+	MaximumCount int `json:"maximumCount"`
+	// +optional
+	MaximumIndividualSizeGB int64 `json:"maximumIndividualSizeGB"`
+}
+
+// NIC count of nics cards
+type NIC struct {
+	// +optional
+	MinimumCount int `json:"minimumCount"`
+	// +optional
+	MaximumCount int `json:"maximumCount"`
+}
+
+// RAM size
+type RAM struct {
+	// +optional
+	MinimumSizeGB int `json:"minimumSizeGB"`
+	// +optional
+	MaximumSizeGB int `json:"maximumSizeGB"`
 }
 
 // HardwareClassificationStatus defines the observed state of HardwareClassification
