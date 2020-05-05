@@ -16,7 +16,6 @@ limitations under the License.
 package v1alpha1
 
 import (
-	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -52,9 +51,9 @@ type CPU struct {
 	// +optional
 	MaximumCount int `json:"maximumCount"`
 	// +optional
-	MinimumSpeed resource.Quantity `json:"minimumSpeed"`
+	MinimumSpeed string `json:"minimumSpeed"`
 	// +optional
-	MaximumSpeed resource.Quantity `json:"maximumSpeed"`
+	MaximumSpeed string `json:"maximumSpeed"`
 }
 
 // Disk size and number of disks

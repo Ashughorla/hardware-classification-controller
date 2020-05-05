@@ -21,6 +21,8 @@ import (
 
 	metal3iov1alpha1 "hardware-classification-controller/api/v1alpha1"
 
+	bmoapis "github.com/metal3-io/baremetal-operator/pkg/apis"
+
 	"hardware-classification-controller/controllers"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -40,6 +42,7 @@ func init() {
 	_ = clientgoscheme.AddToScheme(scheme)
 
 	_ = metal3iov1alpha1.AddToScheme(scheme)
+	_ = bmoapis.AddToScheme(scheme)
 	// +kubebuilder:scaffold:scheme
 }
 

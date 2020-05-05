@@ -18,7 +18,7 @@ package controllers
 import (
 	"context"
 	"errors"
-	"fmt"
+	"strconv"
 
 	"github.com/go-logr/logr"
 
@@ -29,7 +29,6 @@ import (
 
 	bmh "github.com/metal3-io/baremetal-operator/pkg/apis/metal3/v1alpha1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/api/resource"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
@@ -55,7 +54,7 @@ func (r *HardwareClassificationReconciler) Reconcile(req ctrl.Request) (ctrl.Res
 	name = req.NamespacedName
 
 	// Get HardwareClassificationController to get values for Namespace and ExpectedHardwareConfiguration
-	hardwareClassification := &hwcc.HardwareClassificationController{}
+	hardwareClassification := &hwcc.HardwareClassification{}
 
 	if err := r.Client.Get(ctx, req.NamespacedName, hardwareClassification); err != nil {
 		if apierrors.IsNotFound(err) {
@@ -66,7 +65,9 @@ func (r *HardwareClassificationReconciler) Reconcile(req ctrl.Request) (ctrl.Res
 
 	// Get ExpectedHardwareConfiguraton from hardwareClassification
 	extractedProfile := hardwareClassification.Spec.ExpectedHardwareConfiguration
+	r.Log.Info("Extracted hardware configurations successfully", "Profile", extractedProfile)
 
+	// Validate profile details and extract introspection data for each configuration provided in profile
 	extractedHardwareDetails, err := extractHardwareDetails(extractedProfile, validHostList)
 
 	if err != nil {
@@ -74,15 +75,13 @@ func (r *HardwareClassificationReconciler) Reconcile(req ctrl.Request) (ctrl.Res
 		return ctrl.Result{}, nil
 	}
 
-	fmt.Println("-----------------------------------------")
-	fmt.Printf("Extracted Hardware Details %+v", extractedHardwareDetails)
-	fmt.Println("-----------------------------------------")
+	r.Log.Info("Extracted hardware introspection details successfully", "IntrospectionDetails", extractedHardwareDetails)
 
 	return ctrl.Result{}, nil
 }
 
-//fetchBmhHostList this function will return the latest baremetal host list which are in the ready state
-func fetchBmhHostList(ctx context.Context, r *HardwareClassificationControllerReconciler, namespace string) []bmh.BareMetalHost {
+// fetchBmhHostList this function will fetch and return baremetal hosts in ready state
+func fetchBmhHostList(ctx context.Context, r *HardwareClassificationReconciler, namespace string) []bmh.BareMetalHost {
 
 	bmhHostList := bmh.BareMetalHostList{}
 
@@ -108,7 +107,9 @@ func fetchBmhHostList(ctx context.Context, r *HardwareClassificationControllerRe
 	return validHostList
 }
 
-//extractHardwareDetails this function will get the hardware profile details provided by the user in the yaml file
+// extractHardwareDetails this function will validate the hardware configuration
+// details provided by the user and if valid will return map containing
+// introspection details for a host.
 func extractHardwareDetails(extractedProfile hwcc.ExpectedHardwareConfiguration,
 	bmhList []bmh.BareMetalHost) (map[string]map[string]interface{}, error) {
 
@@ -126,35 +127,38 @@ func extractHardwareDetails(extractedProfile hwcc.ExpectedHardwareConfiguration,
 			}
 
 			if extractedProfile.CPU != (hwcc.CPU{}) {
-				if extractedProfile.CPU.MinimumCount > 0 || extractedProfile.CPU.MaximumCount > 0 ||
-					float32(extractedProfile.CPU.MinimumSpeed.Value()) > 0 ||
-					float32(extractedProfile.CPU.MaximumSpeed.Value()) > 0 {
-					introspectionDetails["CPU"] = host.Status.HardwareDetails.CPU
-				} else {
+				if extractedProfile.CPU.MinimumCount < 0 || extractedProfile.CPU.MaximumCount < 0 {
 					err = errors.New("enter valid CPU Count")
 					break
 				}
 
-				if extractedProfile.CPU.MaximumSpeed != (resource.Quantity{}) && extractedProfile.CPU.MinimumSpeed != (resource.Quantity{}) {
-					if float64(extractedProfile.CPU.MaximumSpeed.AsDec().UnscaledBig().Int64()) > 0 ||
-						float64(extractedProfile.CPU.MinimumSpeed.AsDec().UnscaledBig().Int64()) > 0 {
-
-					} else {
-						err = errors.New("enter valid CPU ClockSpeed")
+				if extractedProfile.CPU.MinimumSpeed != "" {
+					if minSpeed, error := strconv.ParseFloat(extractedProfile.CPU.MinimumSpeed, 8); error != nil || minSpeed < 0 {
+						err = errors.New("enter valid Minimum ClockSpeed")
+						break
+					}
+				}
+				if extractedProfile.CPU.MaximumSpeed != "" {
+					if _, error := strconv.ParseFloat(extractedProfile.CPU.MaximumSpeed, 8); error != nil {
+						err = errors.New("enter valid Maximum ClockSpeed")
 						break
 					}
 				}
 
+				introspectionDetails["CPU"] = host.Status.HardwareDetails.CPU
 			}
 
 			if extractedProfile.Disk != (hwcc.Disk{}) {
-				if extractedProfile.Disk.MinimumCount > 0 || extractedProfile.Disk.MinimumIndividualSizeGB > 0 ||
-					extractedProfile.Disk.MaximumCount > 0 || extractedProfile.Disk.MaximumIndividualSizeGB > 0 {
-					introspectionDetails["Disk"] = host.Status.HardwareDetails.Storage
-				} else {
-					err = errors.New("enter valid Disk Details")
+				if extractedProfile.Disk.MinimumCount < 0 || extractedProfile.Disk.MaximumCount < 0 {
+					err = errors.New("enter valid Disk Count")
 					break
 				}
+
+				if extractedProfile.Disk.MinimumIndividualSizeGB < 0 || extractedProfile.Disk.MaximumIndividualSizeGB < 0 {
+					err = errors.New("enter valid Disk Size in GB")
+					break
+				}
+				introspectionDetails["Disk"] = host.Status.HardwareDetails.Storage
 			}
 
 			if extractedProfile.NIC != (hwcc.NIC{}) {
@@ -191,7 +195,7 @@ func extractHardwareDetails(extractedProfile hwcc.ExpectedHardwareConfiguration,
 // SetupWithManager will add watches for this controller
 func (r *HardwareClassificationReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&hwcc.HardwareClassificationController{}).
+		For(&hwcc.HardwareClassification{}).
 		Watches(
 			&source.Kind{Type: &bmh.BareMetalHost{}},
 			&handler.EnqueueRequestsFromMapFunc{

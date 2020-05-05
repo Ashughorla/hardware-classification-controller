@@ -6,10 +6,9 @@ spec:
   expectedValidationConfiguration:
       namespace: metal3
       CPU:
-         minimumCount: 4
-         maximumCount: 6
+         minimumCount: 48
+         maximumCount: 72
          minimumSpeed: "2.7"
-         maximumSpeed: "3.2"
       Disk:
          minimumCount: 1
          maximumCount: 7
