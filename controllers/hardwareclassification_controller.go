@@ -64,6 +64,7 @@ func (r *HardwareClassificationReconciler) Reconcile(req ctrl.Request) (ctrl.Res
 	// Get ExpectedHardwareConfiguraton from hardwareClassification
 	extractedProfile := hardwareClassification.Spec.ExpectedHardwareConfiguration
 	r.Log.Info("Extracted hardware configurations successfully", "Profile", extractedProfile)
+	extractedLabels := hardwareClassification.ObjectMeta.Labels
 
 	hardwareClassification1 := hwcc.HardwareClassification{}
 	// fetch BMH list from BMO
@@ -79,11 +80,82 @@ func (r *HardwareClassificationReconciler) Reconcile(req ctrl.Request) (ctrl.Res
 		comparedHost := filter.MinMaxComparison(hardwareClassification.ObjectMeta.Name, validatedHardwareDetails, extractedProfile)
 		fmt.Println("List of Comapred Host", comparedHost)
 		r.Log.Info("Validated Host from comparison function", "Validated host", extractedHardwareDetails)
+		setValidLabel(ctx, r, hardwareClassification.ObjectMeta.Name, comparedHost, extractedLabels)
 	} else {
 		fmt.Println("Provided configurations are not valid")
 	}
-
+	hardwareClassification = &hwcc.HardwareClassification{}
 	return ctrl.Result{}, nil
+}
+
+// setValidLabel will add label to the hosts which matched ExpectedHardwareConfiguraton
+func setValidLabel(ctx context.Context, r *HardwareClassificationReconciler, profileName string, matchedHosts []string, extractedLabels map[string]string) {
+	// Get updated object to set labels on
+	bmhHostList := bmh.BareMetalHostList{}
+	opts := &client.ListOptions{
+		Namespace: "metal3",
+	}
+	r.Log.Info("Getting updated host list to set labels")
+	err := r.Client.List(ctx, &bmhHostList, opts)
+	if err != nil {
+		fmt.Println("Error while getting updated host list for labels : ", err)
+	} else {
+		r.Log.Info("Received updated host list to set labels")
+	}
+
+	labelKey := "hardwareclassification.metal3.io/" + profileName
+
+	// Delete existing labels for the same profile.
+	r.Log.Info("Checking if labels are already present for this profile")
+	for i, _ := range bmhHostList.Items {
+		existingLabels := bmhHostList.Items[i].GetLabels()
+		for key, _ := range existingLabels {
+			if key == labelKey {
+				delete(existingLabels, key)
+			}
+		}
+		bmhHostList.Items[i].SetLabels(existingLabels)
+		err = r.Client.Update(ctx, &bmhHostList.Items[i])
+		if err != nil {
+			r.Log.Error(err, "Failed to delete existing labels with this profile")
+		}
+	}
+
+	// Set latest labels on the matching hosts
+	for _, validHost := range matchedHosts {
+		for i, host := range bmhHostList.Items {
+			m := make(map[string]string)
+			if validHost == host.Name {
+				// Getting all the existing labels on the matched host.
+				availableLabels := bmhHostList.Items[i].GetLabels()
+				r.Log.Info("Existing Labels ", validHost, availableLabels)
+				for key, value := range availableLabels {
+					m[key] = value
+				}
+				if extractedLabels != nil {
+					for _, value := range extractedLabels {
+						if value == "" {
+							m[labelKey] = "matches"
+						} else {
+							m[labelKey] = value
+						}
+					}
+				} else {
+					m[labelKey] = "matches"
+				}
+				r.Log.Info("Labels to be applied ", validHost, m)
+
+				// Setting labels on the matched host.
+				bmhHostList.Items[i].SetLabels(m)
+				err = r.Client.Update(ctx, &bmhHostList.Items[i])
+				if err != nil {
+					r.Log.Error(err, "Failed to set labels")
+				} else {
+					r.Log.Info("Labels updated successfully")
+				}
+			}
+		}
+	}
 }
 
 // fetchBmhHostList this function will fetch and return baremetal hosts in ready state
