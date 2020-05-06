@@ -158,11 +158,11 @@ func checkCPUCount(cpu valTypes.CPU, expectedCPU *hwcc.CPU) bool {
 	}
 
 	if (expectedCPU.MaximumSpeed != "") && (expectedCPU.MinimumSpeed != "") {
-		MaxSpeed, errMax := strconv.ParseFloat(expectedCPU.MaximumSpeed, 8)
-		MinSpeed, errMin := strconv.ParseFloat(expectedCPU.MinimumSpeed, 8)
-		fmt.Println("Provided Minimum ClockSpeed for CPU", MinSpeed, " and fetched ClockSpeed ", cpu.ClockSpeed)
-		fmt.Println("Provided Maximum ClockSpeed for CPU", MaxSpeed, " and fetched ClockSpeed ", cpu.ClockSpeed)
-		if errMax != nil && errMin != nil {
+		MaxSpeed, errMax := strconv.ParseFloat(expectedCPU.MaximumSpeed, 64)
+		MinSpeed, errMin := strconv.ParseFloat(expectedCPU.MinimumSpeed, 64)
+		if errMax == nil && errMin == nil {
+			fmt.Println("Provided Minimum ClockSpeed for CPU", MinSpeed, " and fetched ClockSpeed ", cpu.ClockSpeed)
+			fmt.Println("Provided Maximum ClockSpeed for CPU", MaxSpeed, " and fetched ClockSpeed ", cpu.ClockSpeed)
 			if MinSpeed > 0 && MaxSpeed > 0 {
 				if (MinSpeed > cpu.ClockSpeed) || (MaxSpeed < cpu.ClockSpeed) {
 					fmt.Println("CPU MINMAX ClockSpeed did not match")
@@ -173,8 +173,8 @@ func checkCPUCount(cpu valTypes.CPU, expectedCPU *hwcc.CPU) bool {
 		}
 
 	} else if expectedCPU.MaximumSpeed != "" {
-		MaxSpeed, errMax := strconv.ParseFloat(expectedCPU.MaximumSpeed, 8)
-		if errMax != nil {
+		MaxSpeed, errMax := strconv.ParseFloat(expectedCPU.MaximumSpeed, 64)
+		if errMax == nil {
 			fmt.Println("Provided Maximum ClockSpeed for CPU", MaxSpeed, " and fetched ClockSpeed ", cpu.ClockSpeed)
 			if MaxSpeed > 0 {
 				if MaxSpeed < cpu.ClockSpeed {
@@ -185,8 +185,8 @@ func checkCPUCount(cpu valTypes.CPU, expectedCPU *hwcc.CPU) bool {
 			}
 		}
 	} else if expectedCPU.MinimumSpeed != "" {
-		MinSpeed, errMin := strconv.ParseFloat(expectedCPU.MaximumSpeed, 8)
-		if errMin != nil {
+		MinSpeed, errMin := strconv.ParseFloat(expectedCPU.MinimumSpeed, 64)
+		if errMin == nil {
 			fmt.Println("Provided Minimum ClockSpeed for CPU", MinSpeed, " and fetched ClockSpeed ", cpu.ClockSpeed)
 			if MinSpeed > 0 {
 				if MinSpeed > cpu.ClockSpeed {

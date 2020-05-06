@@ -6,11 +6,11 @@ metadata:
 spec:
   expectedValidationConfiguration:
       CPU:
-         minimumCount: 48
+         minimumCount: 1
          minimumSpeed: "2.7"
       Disk:
          minimumCount: 1
-         maximumCount: 7
+         maximumCount: 1
          minimumIndividualSizeGB: 200
          maximumIndividualSizeGB: 3000
       RAM:
