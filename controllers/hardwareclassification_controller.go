@@ -23,21 +23,17 @@ import (
 	"github.com/go-logr/logr"
 
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 
 	hwcc "hardware-classification-controller/api/v1alpha1"
 
 	bmh "github.com/metal3-io/baremetal-operator/pkg/apis/metal3/v1alpha1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 )
-
-var validHostList []bmh.BareMetalHost
-var checkValidHost = make(map[string]bool)
-var name = types.NamespacedName{}
 
 // HardwareClassificationReconciler reconciles a HardwareClassification object
 type HardwareClassificationReconciler struct {
@@ -51,7 +47,6 @@ type HardwareClassificationReconciler struct {
 // +kubebuilder:rbac:groups=metal3.io.sigs.k8s.io,resources=hardwareclassifications/status,verbs=get;update;patch
 func (r *HardwareClassificationReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
-	name = req.NamespacedName
 
 	// Get HardwareClassificationController to get values for Namespace and ExpectedHardwareConfiguration
 	hardwareClassification := &hwcc.HardwareClassification{}
@@ -66,6 +61,9 @@ func (r *HardwareClassificationReconciler) Reconcile(req ctrl.Request) (ctrl.Res
 	// Get ExpectedHardwareConfiguraton from hardwareClassification
 	extractedProfile := hardwareClassification.Spec.ExpectedHardwareConfiguration
 	r.Log.Info("Extracted hardware configurations successfully", "Profile", extractedProfile)
+
+	// fetch BMH list from BMO
+	validHostList := fetchBmhHostList(ctx, r, extractedProfile.Namespace)
 
 	// Validate profile details and extract introspection data for each configuration provided in profile
 	extractedHardwareDetails, err := extractHardwareDetails(extractedProfile, validHostList)
@@ -84,6 +82,7 @@ func (r *HardwareClassificationReconciler) Reconcile(req ctrl.Request) (ctrl.Res
 func fetchBmhHostList(ctx context.Context, r *HardwareClassificationReconciler, namespace string) []bmh.BareMetalHost {
 
 	bmhHostList := bmh.BareMetalHostList{}
+	validHostList := []bmh.BareMetalHost{}
 
 	opts := &client.ListOptions{
 		Namespace: namespace,
@@ -100,7 +99,6 @@ func fetchBmhHostList(ctx context.Context, r *HardwareClassificationReconciler, 
 	for _, host := range bmhHostList.Items {
 		if host.Status.Provisioning.State == "ready" {
 			validHostList = append(validHostList, host)
-			checkValidHost[host.ObjectMeta.Name] = true
 		}
 	}
 
@@ -197,42 +195,26 @@ func (r *HardwareClassificationReconciler) SetupWithManager(mgr ctrl.Manager) er
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&hwcc.HardwareClassification{}).
 		Watches(
-			&source.Kind{Type: &bmh.BareMetalHost{}},
+			&source.Kind{Type: &hwcc.HardwareClassification{}},
 			&handler.EnqueueRequestsFromMapFunc{
-				ToRequests: handler.ToRequestsFunc(r.BareMetalHostToHardwareClassification),
+				ToRequests: handler.ToRequestsFunc(r.WatchHardwareClassification),
 			},
 		).
 		Complete(r)
 }
 
-// BareMetalHostToHardwareClassification will return a reconcile request for a
-// HardwareClassification if the event is for a BareMetalHost.
-func (r *HardwareClassificationReconciler) BareMetalHostToHardwareClassification(obj handler.MapObject) []ctrl.Request {
-	var result []ctrl.Request
-
-	if len(validHostList) == 0 {
-		validHostList = fetchBmhHostList(context.Background(), r, "metal3")
-	}
-
-	if host, ok := obj.Object.(*bmh.BareMetalHost); ok {
-
-		// If host found in validHostList and current provisioining state
-		// is not ready then remove host from validHostList. Else if host
-		// not found in validHostList and current provisioning state is ready
-		// then append it to validHostList.
-		if checkValidHost[host.ObjectMeta.Name] && host.Status.Provisioning.State != "ready" {
-			for i, validHost := range validHostList {
-				if validHost.ObjectMeta.Name == host.ObjectMeta.Name {
-					validHostList = append(validHostList[:i], validHostList[i+1:]...)
-					checkValidHost[validHost.ObjectMeta.Name] = false
-					result = append(result, ctrl.Request{NamespacedName: name})
-				}
-			}
-		} else if !checkValidHost[host.ObjectMeta.Name] && host.Status.Provisioning.State == "ready" {
-			validHostList = append(validHostList, *host)
-			checkValidHost[host.ObjectMeta.Name] = true
-			result = append(result, ctrl.Request{NamespacedName: name})
+// WatchHardwareClassification will return a reconcile request for a
+// HardwareClassification if the event is for a HardwareClassification.
+func (r *HardwareClassificationReconciler) WatchHardwareClassification(obj handler.MapObject) []ctrl.Request {
+	if profile, ok := obj.Object.(*hwcc.HardwareClassification); ok {
+		return []ctrl.Request{
+			ctrl.Request{
+				NamespacedName: types.NamespacedName{
+					Name:      profile.ObjectMeta.Name,
+					Namespace: profile.ObjectMeta.Namespace,
+				},
+			},
 		}
 	}
-	return result
+	return []ctrl.Request{}
 }
