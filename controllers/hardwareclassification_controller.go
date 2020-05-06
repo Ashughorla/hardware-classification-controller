@@ -17,10 +17,13 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/go-logr/logr"
 
 	hwcc "hardware-classification-controller/api/v1alpha1"
+	filter "hardware-classification-controller/classification_filter"
+	validate "hardware-classification-controller/validation"
 
 	bmh "github.com/metal3-io/baremetal-operator/pkg/apis/metal3/v1alpha1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -70,6 +73,15 @@ func (r *HardwareClassificationReconciler) Reconcile(req ctrl.Request) (ctrl.Res
 	extractedHardwareDetails := extractHardwareDetails(extractedProfile, validHostList)
 
 	r.Log.Info("Extracted hardware introspection details successfully", "IntrospectionDetails", extractedHardwareDetails)
+
+	if len(extractedHardwareDetails) > 0 {
+		validatedHardwareDetails := validate.Validation(extractedHardwareDetails)
+		comparedHost := filter.MinMaxComparison(hardwareClassification.ObjectMeta.Name, validatedHardwareDetails, extractedProfile)
+		fmt.Println("List of Comapred Host", comparedHost)
+		r.Log.Info("Validated Host from comparison function", "Validated host", extractedHardwareDetails)
+	} else {
+		fmt.Println("Provided configurations are not valid")
+	}
 
 	return ctrl.Result{}, nil
 }

@@ -43,56 +43,56 @@ type ExpectedHardwareConfiguration struct {
 	RAM *RAM `json:"RAM"`
 }
 
-// CPU count
+// CPU contains CPU details extracted from the hardware profile
 type CPU struct {
 	// +optional
 	// +kubebuilder:validation:Minimum=1
-	MinimumCount int `json:"minimumCount"`
+	MinimumCount int `json:"minimumCount" description:"minimum cpu count, greater than 0"`
 	// +optional
 	// +kubebuilder:validation:Minimum=1
-	MaximumCount int `json:"maximumCount"`
+	MaximumCount int `json:"maximumCount" description:"maximum cpu count, greater than 0"`
 	// +optional
 	// +kubebuilder:validation:Pattern=`^\d*\.?\d*$`
-	MinimumSpeed string `json:"minimumSpeed"`
+	MinimumSpeed string `json:"minimumSpeed" description:"minimum speed of cpu, greater than 0"`
 	// +optional
 	// +kubebuilder:validation:Pattern=`^\d*\.?\d*$`
-	MaximumSpeed string `json:"maximumSpeed"`
+	MaximumSpeed string `json:"maximumSpeed" description:"maximum speed of cpu, greater than 0"`
 }
 
-// Disk size and number of disks
+// Disk contains disk details extracted from the hardware profile
 type Disk struct {
 	// +optional
 	// +kubebuilder:validation:Minimum=1
-	MinimumCount int `json:"minimumCount"`
+	MinimumCount int `json:"minimumCount" description:"minimum count of disk, greater than 0"`
 	// +optional
 	// +kubebuilder:validation:Minimum=1
-	MinimumIndividualSizeGB int64 `json:"minimumIndividualSizeGB"`
+	MinimumIndividualSizeGB int64 `json:"minimumIndividualSizeGB" description:"minimum individual size of disk, greater than 0"`
 	// +optional
 	// +kubebuilder:validation:Minimum=1
-	MaximumCount int `json:"maximumCount"`
+	MaximumCount int `json:"maximumCount" description:"maximum count of disk, greater than 0"`
 	// +optional
 	// +kubebuilder:validation:Minimum=1
-	MaximumIndividualSizeGB int64 `json:"maximumIndividualSizeGB"`
+	MaximumIndividualSizeGB int64 `json:"maximumIndividualSizeGB" description:"maximum individual size of disk, greater than 0"`
 }
 
-// NIC count of nics cards
+// NIC contains nic details extracted from the hardware profile
 type NIC struct {
 	// +optional
 	// +kubebuilder:validation:Minimum=1
-	MinimumCount int `json:"minimumCount"`
+	MinimumCount int `json:"minimumCount" description:"minimum count of nics, greater than 0"`
 	// +optional
 	// +kubebuilder:validation:Minimum=1
-	MaximumCount int `json:"maximumCount"`
+	MaximumCount int `json:"maximumCount" description:"maximum count of nics, greater than 0"`
 }
 
-// RAM size
+// RAM contains ram details extracted from the hardware profile
 type RAM struct {
 	// +optional
 	// +kubebuilder:validation:Minimum=1
-	MinimumSizeGB int `json:"minimumSizeGB"`
+	MinimumSizeGB int `json:"minimumSizeGB" description:"minimun size of ram, greater than 0"`
 	// +optional
 	// +kubebuilder:validation:Minimum=1
-	MaximumSizeGB int `json:"maximumSizeGB"`
+	MaximumSizeGB int `json:"maximumSizeGB" description:"maximum size of ram, greater than 0"`
 }
 
 // HardwareClassificationStatus defines the observed state of HardwareClassification
