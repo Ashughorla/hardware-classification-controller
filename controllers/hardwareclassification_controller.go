@@ -17,20 +17,20 @@ package controllers
 
 import (
 	"context"
-	"errors"
-	"strconv"
 
 	"github.com/go-logr/logr"
-
-	"k8s.io/apimachinery/pkg/runtime"
 
 	hwcc "hardware-classification-controller/api/v1alpha1"
 
 	bmh "github.com/metal3-io/baremetal-operator/pkg/apis/metal3/v1alpha1"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 )
@@ -62,16 +62,12 @@ func (r *HardwareClassificationReconciler) Reconcile(req ctrl.Request) (ctrl.Res
 	extractedProfile := hardwareClassification.Spec.ExpectedHardwareConfiguration
 	r.Log.Info("Extracted hardware configurations successfully", "Profile", extractedProfile)
 
+	hardwareClassification1 := hwcc.HardwareClassification{}
 	// fetch BMH list from BMO
-	validHostList := fetchBmhHostList(ctx, r, extractedProfile.Namespace)
+	validHostList := fetchBmhHostList(ctx, r, hardwareClassification1.ObjectMeta.Namespace)
 
-	// Validate profile details and extract introspection data for each configuration provided in profile
-	extractedHardwareDetails, err := extractHardwareDetails(extractedProfile, validHostList)
-
-	if err != nil {
-		r.Log.Error(nil, "Unable to extract details", "error", err.Error())
-		return ctrl.Result{}, nil
-	}
+	// Extract introspection data for each configuration provided in profile
+	extractedHardwareDetails := extractHardwareDetails(extractedProfile, validHostList)
 
 	r.Log.Info("Extracted hardware introspection details successfully", "IntrospectionDetails", extractedHardwareDetails)
 
@@ -105,89 +101,39 @@ func fetchBmhHostList(ctx context.Context, r *HardwareClassificationReconciler, 
 	return validHostList
 }
 
-// extractHardwareDetails this function will validate the hardware configuration
-// details provided by the user and if valid will return map containing
+// extractHardwareDetails this function will return map containing
 // introspection details for a host.
 func extractHardwareDetails(extractedProfile hwcc.ExpectedHardwareConfiguration,
-	bmhList []bmh.BareMetalHost) (map[string]map[string]interface{}, error) {
+	bmhList []bmh.BareMetalHost) map[string]map[string]interface{} {
 
-	var err error
 	extractedHardwareDetails := make(map[string]map[string]interface{})
 
 	if extractedProfile != (hwcc.ExpectedHardwareConfiguration{}) {
 		for _, host := range bmhList {
 			introspectionDetails := make(map[string]interface{})
 
-			if (extractedProfile.CPU == (hwcc.CPU{})) && (extractedProfile.Disk == (hwcc.Disk{})) &&
-				(extractedProfile.NIC == (hwcc.NIC{})) && (extractedProfile.RAM == (hwcc.RAM{})) {
-				err = errors.New("atleast one of the configuration should be provided")
-				break
-			}
-
-			if extractedProfile.CPU != (hwcc.CPU{}) {
-				if extractedProfile.CPU.MinimumCount < 0 || extractedProfile.CPU.MaximumCount < 0 {
-					err = errors.New("enter valid CPU Count")
-					break
-				}
-
-				if extractedProfile.CPU.MinimumSpeed != "" {
-					if minSpeed, error := strconv.ParseFloat(extractedProfile.CPU.MinimumSpeed, 8); error != nil || minSpeed < 0 {
-						err = errors.New("enter valid Minimum ClockSpeed")
-						break
-					}
-				}
-				if extractedProfile.CPU.MaximumSpeed != "" {
-					if _, error := strconv.ParseFloat(extractedProfile.CPU.MaximumSpeed, 8); error != nil {
-						err = errors.New("enter valid Maximum ClockSpeed")
-						break
-					}
-				}
-
+			if extractedProfile.CPU != nil {
 				introspectionDetails["CPU"] = host.Status.HardwareDetails.CPU
 			}
 
-			if extractedProfile.Disk != (hwcc.Disk{}) {
-				if extractedProfile.Disk.MinimumCount < 0 || extractedProfile.Disk.MaximumCount < 0 {
-					err = errors.New("enter valid Disk Count")
-					break
-				}
-
-				if extractedProfile.Disk.MinimumIndividualSizeGB < 0 || extractedProfile.Disk.MaximumIndividualSizeGB < 0 {
-					err = errors.New("enter valid Disk Size in GB")
-					break
-				}
+			if extractedProfile.Disk != nil {
 				introspectionDetails["Disk"] = host.Status.HardwareDetails.Storage
 			}
 
-			if extractedProfile.NIC != (hwcc.NIC{}) {
-				if extractedProfile.NIC.MinimumCount > 0 || extractedProfile.NIC.MaximumCount > 0 {
-					introspectionDetails["NIC"] = host.Status.HardwareDetails.NIC
-				} else {
-					err = errors.New("enter valid NICS Count")
-					break
-				}
+			if extractedProfile.NIC != nil {
+				introspectionDetails["NIC"] = host.Status.HardwareDetails.NIC
 			}
 
-			if extractedProfile.RAM != (hwcc.RAM{}) {
-				if extractedProfile.RAM.MinimumSizeGB > 0 || extractedProfile.RAM.MaximumSizeGB > 0 {
-					introspectionDetails["RAMMebibytes"] = host.Status.HardwareDetails.RAMMebibytes
-				} else {
-					err = errors.New("enter valid RAM size in GB")
-					break
-				}
+			if extractedProfile.RAM != nil {
+				introspectionDetails["RAMMebibytes"] = host.Status.HardwareDetails.RAMMebibytes
 			}
 
 			if len(introspectionDetails) > 0 {
 				extractedHardwareDetails[host.ObjectMeta.Name] = introspectionDetails
 			}
 		}
-
 	}
-	if err != nil {
-		return extractedHardwareDetails, err
-	}
-
-	return extractedHardwareDetails, nil
+	return extractedHardwareDetails
 }
 
 // SetupWithManager will add watches for this controller

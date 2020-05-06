@@ -43,48 +43,56 @@ spec:
                   description: CPU count
                   properties:
                     maximumCount:
+                      minimum: 1
                       type: integer
                     maximumSpeed:
+                      pattern: ^\d*\.?\d*$
                       type: string
                     minimumCount:
+                      minimum: 1
                       type: integer
                     minimumSpeed:
+                      pattern: ^\d*\.?\d*$
                       type: string
                   type: object
                 Disk:
                   description: Disk size and number of disks
                   properties:
                     maximumCount:
+                      minimum: 1
                       type: integer
                     maximumIndividualSizeGB:
                       format: int64
+                      minimum: 1
                       type: integer
                     minimumCount:
+                      minimum: 1
                       type: integer
                     minimumIndividualSizeGB:
                       format: int64
+                      minimum: 1
                       type: integer
                   type: object
                 NIC:
                   description: NIC count of nics cards
                   properties:
                     maximumCount:
+                      minimum: 1
                       type: integer
                     minimumCount:
+                      minimum: 1
                       type: integer
                   type: object
                 RAM:
                   description: RAM size
                   properties:
                     maximumSizeGB:
+                      minimum: 1
                       type: integer
                     minimumSizeGB:
+                      minimum: 1
                       type: integer
                   type: object
-                namespace:
-                  type: string
-              required:
-              - namespace
               type: object
           required:
           - expectedValidationConfiguration

@@ -2,9 +2,9 @@ apiVersion: metal3.io.sigs.k8s.io/v1alpha1
 kind: HardwareClassification
 metadata:
   name: hardwareclassification-sample
+  namespace: metal3
 spec:
   expectedValidationConfiguration:
-      namespace: metal3
       CPU:
          minimumCount: 48
          minimumSpeed: "2.7"
@@ -19,4 +19,3 @@ spec:
       NIC:
          minimumCount: 1
          maximumCount: 7
-      

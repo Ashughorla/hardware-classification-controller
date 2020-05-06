@@ -33,54 +33,65 @@ type HardwareClassificationSpec struct {
 
 // ExpectedHardwareConfiguration details to match with the host
 type ExpectedHardwareConfiguration struct {
-	Namespace string `json:"namespace"`
 	// +optional
-	CPU CPU `json:"CPU"`
+	CPU *CPU `json:"CPU"`
 	// +optional
-	Disk Disk `json:"Disk"`
+	Disk *Disk `json:"Disk"`
 	// +optional
-	NIC NIC `json:"NIC"`
+	NIC *NIC `json:"NIC"`
 	// +optional
-	RAM RAM `json:"RAM"`
+	RAM *RAM `json:"RAM"`
 }
 
 // CPU count
 type CPU struct {
 	// +optional
+	// +kubebuilder:validation:Minimum=1
 	MinimumCount int `json:"minimumCount"`
 	// +optional
+	// +kubebuilder:validation:Minimum=1
 	MaximumCount int `json:"maximumCount"`
 	// +optional
+	// +kubebuilder:validation:Pattern=`^\d*\.?\d*$`
 	MinimumSpeed string `json:"minimumSpeed"`
 	// +optional
+	// +kubebuilder:validation:Pattern=`^\d*\.?\d*$`
 	MaximumSpeed string `json:"maximumSpeed"`
 }
 
 // Disk size and number of disks
 type Disk struct {
 	// +optional
+	// +kubebuilder:validation:Minimum=1
 	MinimumCount int `json:"minimumCount"`
 	// +optional
+	// +kubebuilder:validation:Minimum=1
 	MinimumIndividualSizeGB int64 `json:"minimumIndividualSizeGB"`
 	// +optional
+	// +kubebuilder:validation:Minimum=1
 	MaximumCount int `json:"maximumCount"`
 	// +optional
+	// +kubebuilder:validation:Minimum=1
 	MaximumIndividualSizeGB int64 `json:"maximumIndividualSizeGB"`
 }
 
 // NIC count of nics cards
 type NIC struct {
 	// +optional
+	// +kubebuilder:validation:Minimum=1
 	MinimumCount int `json:"minimumCount"`
 	// +optional
+	// +kubebuilder:validation:Minimum=1
 	MaximumCount int `json:"maximumCount"`
 }
 
 // RAM size
 type RAM struct {
 	// +optional
+	// +kubebuilder:validation:Minimum=1
 	MinimumSizeGB int `json:"minimumSizeGB"`
 	// +optional
+	// +kubebuilder:validation:Minimum=1
 	MaximumSizeGB int `json:"maximumSizeGB"`
 }
 
