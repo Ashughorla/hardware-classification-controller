@@ -3,10 +3,12 @@ kind: HardwareClassification
 metadata:
   name: hardwareclassification-sample
   namespace: metal3
+  labels:
+      hardwareclassification-sample: matches
 spec:
   expectedValidationConfiguration:
       CPU:
-         minimumCount: 1
+         minimumCount: 4
          minimumSpeed: "2.7"
       Disk:
          minimumCount: 1

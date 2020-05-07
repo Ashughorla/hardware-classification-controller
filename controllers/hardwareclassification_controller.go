@@ -66,9 +66,8 @@ func (r *HardwareClassificationReconciler) Reconcile(req ctrl.Request) (ctrl.Res
 	r.Log.Info("Extracted hardware configurations successfully", "Profile", extractedProfile)
 	extractedLabels := hardwareClassification.ObjectMeta.Labels
 
-	hardwareClassification1 := hwcc.HardwareClassification{}
 	// fetch BMH list from BMO
-	validHostList := fetchBmhHostList(ctx, r, hardwareClassification1.ObjectMeta.Namespace)
+	validHostList := fetchBmhHostList(ctx, r, hardwareClassification.ObjectMeta.Namespace)
 
 	// Extract introspection data for each configuration provided in profile
 	extractedHardwareDetails := extractHardwareDetails(extractedProfile, validHostList)
@@ -79,11 +78,11 @@ func (r *HardwareClassificationReconciler) Reconcile(req ctrl.Request) (ctrl.Res
 		validatedHardwareDetails := validate.Validation(extractedHardwareDetails)
 		comparedHost := filter.MinMaxComparison(hardwareClassification.ObjectMeta.Name, validatedHardwareDetails, extractedProfile)
 		fmt.Println("List of Comapred Host", comparedHost)
-		r.Log.Info("Validated Host from comparison function", "Validated host", extractedHardwareDetails)
 		setValidLabel(ctx, r, hardwareClassification.ObjectMeta.Name, comparedHost, extractedLabels)
 	} else {
 		fmt.Println("Provided configurations are not valid")
 	}
+
 	hardwareClassification = &hwcc.HardwareClassification{}
 	return ctrl.Result{}, nil
 }
@@ -107,9 +106,9 @@ func setValidLabel(ctx context.Context, r *HardwareClassificationReconciler, pro
 
 	// Delete existing labels for the same profile.
 	r.Log.Info("Checking if labels are already present for this profile")
-	for i, _ := range bmhHostList.Items {
+	for i := range bmhHostList.Items {
 		existingLabels := bmhHostList.Items[i].GetLabels()
-		for key, _ := range existingLabels {
+		for key := range existingLabels {
 			if key == labelKey {
 				delete(existingLabels, key)
 			}
@@ -237,6 +236,7 @@ func (r *HardwareClassificationReconciler) SetupWithManager(mgr ctrl.Manager) er
 // HardwareClassification if the event is for a HardwareClassification.
 func (r *HardwareClassificationReconciler) WatchHardwareClassification(obj handler.MapObject) []ctrl.Request {
 	if profile, ok := obj.Object.(*hwcc.HardwareClassification); ok {
+		fmt.Println("In Watcher Function for name: **************", profile.ObjectMeta.Name)
 		return []ctrl.Request{
 			ctrl.Request{
 				NamespacedName: types.NamespacedName{
