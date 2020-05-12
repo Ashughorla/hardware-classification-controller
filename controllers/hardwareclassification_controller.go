@@ -64,6 +64,11 @@ func (r *HardwareClassificationReconciler) Reconcile(req ctrl.Request) (ctrl.Res
 
 	// Get ExpectedHardwareConfiguraton from hardwareClassification
 	extractedProfile := hardwareClassification.Spec.ExpectedHardwareConfiguration
+	if (extractedProfile.Disk.MinimumCount <= 0) && (extractedProfile.Disk.MaximumCount <= 0) {
+		r.Log.Info("Please provide Disk count. It can be 1 or greater than 1.\n")
+		return ctrl.Result{}, nil
+	}
+
 	r.Log.Info("Extracted hardware configurations successfully", "Profile", extractedProfile)
 	extractedLabels := hardwareClassification.ObjectMeta.Labels
 
@@ -101,7 +106,7 @@ func setValidLabel(ctx context.Context, r *HardwareClassificationReconciler, pro
 	r.Log.Info("Getting updated host list to set labels")
 	err := r.Client.List(ctx, &bmhHostList, opts)
 	if err != nil {
-		r.Log.Error(err,"Failed to get updated host list for labels")
+		r.Log.Error(err, "Failed to get updated host list for labels")
 	} else {
 		r.Log.Info("Received updated host list to set labels")
 	}
@@ -254,4 +259,3 @@ func (r *HardwareClassificationReconciler) WatchHardwareClassification(obj handl
 	}
 	return []ctrl.Request{}
 }
-
