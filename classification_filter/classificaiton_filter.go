@@ -57,11 +57,11 @@ func MinMaxComparison(ProfileName string, validatedHost map[string]map[string]in
 
 		if isHostValid {
 			comparedHost = append(comparedHost, hostname)
-			fmt.Println(hostname, " Matches profile ", ProfileName)
+			fmt.Println(hostname, " Matched profile ", ProfileName)
 			fmt.Printf("\n\n\n")
 
 		} else {
-			fmt.Println(hostname, " Did not matches profile ", ProfileName)
+			fmt.Println(hostname, " Did not match profile ", ProfileName)
 			fmt.Printf("\n\n\n")
 
 		}

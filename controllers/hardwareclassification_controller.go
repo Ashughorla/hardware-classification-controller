@@ -17,8 +17,10 @@ package controllers
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/go-logr/logr"
 
@@ -28,7 +30,6 @@ import (
 
 	bmh "github.com/metal3-io/baremetal-operator/pkg/apis/metal3/v1alpha1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -75,6 +76,11 @@ func (r *HardwareClassificationReconciler) Reconcile(req ctrl.Request) (ctrl.Res
 	// fetch BMH list from BMO
 	validHostList := fetchBmhHostList(ctx, r, hardwareClassification.ObjectMeta.Namespace)
 
+	if len(validHostList) == 0 {
+		err := errors.New("No BareMetal Host found in ready state")
+		r.Log.Error(err, "Error Occurred")
+		return ctrl.Result{}, nil
+	}
 	// Extract introspection data for each configuration provided in profile
 	extractedHardwareDetails := extractHardwareDetails(extractedProfile, validHostList)
 
@@ -83,13 +89,10 @@ func (r *HardwareClassificationReconciler) Reconcile(req ctrl.Request) (ctrl.Res
 	if len(extractedHardwareDetails) > 0 {
 		validatedHardwareDetails := validate.Validation(extractedHardwareDetails)
 		comparedHost := filter.MinMaxComparison(hardwareClassification.ObjectMeta.Name, validatedHardwareDetails, extractedProfile)
-		fmt.Println("List of Comapred Host", comparedHost)
+		fmt.Println("List of Compared Hosts", comparedHost)
 		setValidLabel(ctx, r, hardwareClassification.ObjectMeta, comparedHost, extractedLabels)
-	} else {
-		fmt.Println("Provided configurations are not valid")
 	}
 
-	hardwareClassification = &hwcc.HardwareClassification{}
 	return ctrl.Result{}, nil
 }
 
@@ -236,26 +239,7 @@ func (r *HardwareClassificationReconciler) SetupWithManager(mgr ctrl.Manager) er
 		For(&hwcc.HardwareClassification{}).
 		Watches(
 			&source.Kind{Type: &hwcc.HardwareClassification{}},
-			&handler.EnqueueRequestsFromMapFunc{
-				ToRequests: handler.ToRequestsFunc(r.WatchHardwareClassification),
-			},
+			handler.Funcs{},
 		).
 		Complete(r)
-}
-
-// WatchHardwareClassification will return a reconcile request for a
-// HardwareClassification if the event is for a HardwareClassification.
-func (r *HardwareClassificationReconciler) WatchHardwareClassification(obj handler.MapObject) []ctrl.Request {
-	if profile, ok := obj.Object.(*hwcc.HardwareClassification); ok {
-		fmt.Println("In Watcher Function for name: **************", profile.ObjectMeta.Name)
-		return []ctrl.Request{
-			ctrl.Request{
-				NamespacedName: types.NamespacedName{
-					Name:      profile.ObjectMeta.Name,
-					Namespace: profile.ObjectMeta.Namespace,
-				},
-			},
-		}
-	}
-	return []ctrl.Request{}
 }

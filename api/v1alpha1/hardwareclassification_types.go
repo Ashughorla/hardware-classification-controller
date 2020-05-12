@@ -108,7 +108,7 @@ type HardwareClassification struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   HardwareClassificationSpec   `json:"spec,omitempty"`
+	Spec   HardwareClassificationSpec   `json:"spec"`
 	Status HardwareClassificationStatus `json:"status,omitempty"`
 }
 
