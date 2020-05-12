@@ -67,9 +67,11 @@ func (r *HardwareClassificationReconciler) Reconcile(req ctrl.Request) (ctrl.Res
 	extractedProfile := hardwareClassification.Spec.ExpectedHardwareConfiguration
 
 	// Checking Disk Count present or not id Disk individual size is present
-	if err := checkDiskCount(extractedProfile); err != nil {
-		r.Log.Error(nil, "Disk count error", "Error", err.Error())
-		return ctrl.Result{}, err
+	if extractedProfile.Disk != nil {
+		if err := checkDiskCount(extractedProfile); err != nil {
+			r.Log.Error(nil, "Disk count error", "Error", err.Error())
+			return ctrl.Result{}, nil
+		}
 	}
 
 	r.Log.Info("Extracted hardware configurations successfully", "Profile", extractedProfile)
@@ -246,7 +248,7 @@ func (r *HardwareClassificationReconciler) SetupWithManager(mgr ctrl.Manager) er
 		Complete(r)
 }
 func checkDiskCount(extractedProfile hwcc.ExpectedHardwareConfiguration) error {
-	if (extractedProfile.Disk.MinimumIndividualSizeGB > 0) && (extractedProfile.Disk.MaximumIndividualSizeGB > 0) {
+	if (extractedProfile.Disk.MinimumIndividualSizeGB > 0) || (extractedProfile.Disk.MaximumIndividualSizeGB > 0) {
 		if (extractedProfile.Disk.MinimumCount <= 0) && (extractedProfile.Disk.MaximumCount <= 0) {
 			return errors.New("disk count is mandatory if disk individual size is given")
 		}
