@@ -246,7 +246,6 @@ func (r *HardwareClassificationReconciler) SetupWithManager(mgr ctrl.Manager) er
 		Complete(r)
 }
 func checkDiskCount(extractedProfile hwcc.ExpectedHardwareConfiguration) error {
-	fmt.Println("Checking Disk count ***********************")
 	if (extractedProfile.Disk.MinimumIndividualSizeGB > 0) && (extractedProfile.Disk.MaximumIndividualSizeGB > 0) {
 		if (extractedProfile.Disk.MinimumCount <= 0) && (extractedProfile.Disk.MaximumCount <= 0) {
 			return errors.New("disk count is mandatory if disk individual size is given")
