@@ -243,7 +243,14 @@ func checkDiskDetailsl(storage valTypes.Storage, expectedDisk *hwcc.Disk) bool {
 		if expectedDisk.MaximumCount >= storage.Count {
 			for _, disk := range storage.Disk {
 
-				if expectedDisk.MaximumIndividualSizeGB > 0 {
+				if expectedDisk.MaximumIndividualSizeGB > 0 && expectedDisk.MinimumIndividualSizeGB > 0 {
+					fmt.Println("Provided Minimum Size for Disk", expectedDisk.MinimumIndividualSizeGB, " and fetched Size ", disk.SizeGb)
+					fmt.Println("Provided Maximum Size for Disk", expectedDisk.MaximumIndividualSizeGB, " and fetched Size ", disk.SizeGb)
+					if (expectedDisk.MaximumIndividualSizeGB < disk.SizeGb) || (expectedDisk.MinimumIndividualSizeGB > disk.SizeGb) {
+						fmt.Println("Disk MINMAX SIZE did not match")
+						return false
+					}
+				} else if expectedDisk.MaximumIndividualSizeGB > 0 {
 					fmt.Println("Provided Maximum Size for Disk", expectedDisk.MaximumIndividualSizeGB, " and fetched Size ", disk.SizeGb)
 					if expectedDisk.MaximumIndividualSizeGB < disk.SizeGb {
 						fmt.Println("Disk MAX SIZE did not match")
@@ -267,7 +274,14 @@ func checkDiskDetailsl(storage valTypes.Storage, expectedDisk *hwcc.Disk) bool {
 		if expectedDisk.MinimumCount <= storage.Count {
 			for _, disk := range storage.Disk {
 
-				if expectedDisk.MaximumIndividualSizeGB > 0 {
+				if expectedDisk.MaximumIndividualSizeGB > 0 && expectedDisk.MinimumIndividualSizeGB > 0 {
+					fmt.Println("Provided Minimum Size for Disk", expectedDisk.MinimumIndividualSizeGB, " and fetched Size ", disk.SizeGb)
+					fmt.Println("Provided Maximum Size for Disk", expectedDisk.MaximumIndividualSizeGB, " and fetched Size ", disk.SizeGb)
+					if (expectedDisk.MaximumIndividualSizeGB < disk.SizeGb) || (expectedDisk.MinimumIndividualSizeGB > disk.SizeGb) {
+						fmt.Println("Disk MINMAX SIZE did not match")
+						return false
+					}
+				} else if expectedDisk.MaximumIndividualSizeGB > 0 {
 					fmt.Println("Provided Maximum Size for Disk", expectedDisk.MaximumIndividualSizeGB, " and fetched Size ", disk.SizeGb)
 					if expectedDisk.MaximumIndividualSizeGB < disk.SizeGb {
 						fmt.Println("Disk MAX SIZE did not match")
