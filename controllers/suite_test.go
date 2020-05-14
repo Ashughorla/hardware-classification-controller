@@ -155,8 +155,24 @@ var _ = Describe("Hardware Classification Controller", func() {
 		Namespace     string
 	}
 
+	hostTest := []runtime.Object{&host0, &host1, &host2, &host3}
+
+	c := fakeclient.NewFakeClientWithScheme(setupSchemeMm(), hostTest...)
+	r := HardwareClassificationReconciler{
+		Client: c,
+		Log:    klogr.New(),
+	}
+	result := fetchBmhHostList(context.TODO(), &r, "default")
+
+	It("Should Check the matched fetch host", func() {
+		Expect(len(result)).Should(Equal(len(hostTest)))
+	})
+
 	DescribeTable("Test Fetch Baremetal Host List",
 		func(tc testCaseForBMHostList) {
+
+			fmt.Println("Inside Describe table")
+
 			c := fakeclient.NewFakeClientWithScheme(setupSchemeMm(), tc.Hosts...)
 			r := HardwareClassificationReconciler{
 				Client: c,
