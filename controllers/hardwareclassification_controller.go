@@ -78,7 +78,7 @@ func (r *HardwareClassificationReconciler) Reconcile(req ctrl.Request) (ctrl.Res
 	extractedLabels := hardwareClassification.ObjectMeta.Labels
 
 	// fetch BMH list from BMO
-	validHostList := fetchBmhHostList(ctx, r, hardwareClassification.ObjectMeta.Namespace)
+	validHostList, bmhHostList := fetchBmhHostList(ctx, r, hardwareClassification.ObjectMeta.Namespace)
 
 	if len(validHostList) == 0 {
 		err := errors.New("No BareMetal Host found in ready state")
@@ -94,30 +94,18 @@ func (r *HardwareClassificationReconciler) Reconcile(req ctrl.Request) (ctrl.Res
 		validatedHardwareDetails := validate.Validation(extractedHardwareDetails)
 		comparedHost := filter.MinMaxComparison(hardwareClassification.ObjectMeta.Name, validatedHardwareDetails, extractedProfile)
 		fmt.Println("List of Compared Hosts", comparedHost)
-		setValidLabel(ctx, r, hardwareClassification.ObjectMeta, comparedHost, extractedLabels)
+		setValidLabel(ctx, r, hardwareClassification.ObjectMeta, comparedHost, extractedLabels, bmhHostList)
 	}
 
 	return ctrl.Result{}, nil
 }
 
 // setValidLabel will add label to the hosts which matched ExpectedHardwareConfiguraton
-func setValidLabel(ctx context.Context, r *HardwareClassificationReconciler, profile v1.ObjectMeta, matchedHosts []string, extractedLabels map[string]string) {
+func setValidLabel(ctx context.Context, r *HardwareClassificationReconciler, profile v1.ObjectMeta, matchedHosts []string, extractedLabels map[string]string, list bmh.BareMetalHostList) {
 
 	profileName := profile.Name
 	// Get updated object to set labels on
-	bmhHostList := bmh.BareMetalHostList{}
-	opts := &client.ListOptions{
-		Namespace: profile.Namespace,
-	}
-
-	r.Log.Info("Getting updated host list to set labels")
-	err := r.Client.List(ctx, &bmhHostList, opts)
-	if err != nil {
-		r.Log.Error(err, "Failed to get updated host list for labels")
-	} else {
-		r.Log.Info("Received updated host list to set labels")
-	}
-
+	bmhHostList := list
 	labelKey := "hardwareclassification.metal3.io/" + profileName
 
 	// Delete existing labels for the same profile.
@@ -131,7 +119,7 @@ func setValidLabel(ctx context.Context, r *HardwareClassificationReconciler, pro
 				}
 			}
 			bmhHostList.Items[i].SetLabels(existingLabels)
-			err = r.Client.Update(ctx, &bmhHostList.Items[i])
+			err := r.Client.Update(ctx, &bmhHostList.Items[i])
 			if err != nil {
 				r.Log.Error(err, "Failed to delete existing labels with this profile")
 			}
@@ -164,7 +152,7 @@ func setValidLabel(ctx context.Context, r *HardwareClassificationReconciler, pro
 
 				// Setting labels on the matched host.
 				bmhHostList.Items[i].SetLabels(m)
-				err = r.Client.Update(ctx, &bmhHostList.Items[i])
+				err := r.Client.Update(ctx, &bmhHostList.Items[i])
 				if err != nil {
 					r.Log.Error(err, "Failed to set labels")
 				} else {
@@ -176,7 +164,7 @@ func setValidLabel(ctx context.Context, r *HardwareClassificationReconciler, pro
 }
 
 // fetchBmhHostList this function will fetch and return baremetal hosts in ready state
-func fetchBmhHostList(ctx context.Context, r *HardwareClassificationReconciler, namespace string) []bmh.BareMetalHost {
+func fetchBmhHostList(ctx context.Context, r *HardwareClassificationReconciler, namespace string) ([]bmh.BareMetalHost, bmh.BareMetalHostList) {
 
 	bmhHostList := bmh.BareMetalHostList{}
 	var validHostList []bmh.BareMetalHost
@@ -189,7 +177,7 @@ func fetchBmhHostList(ctx context.Context, r *HardwareClassificationReconciler, 
 	err := r.Client.List(ctx, &bmhHostList, opts)
 	if err != nil {
 		r.Log.Error(nil, "Unable to extract details", "error", err.Error())
-		return validHostList
+		return validHostList, bmhHostList
 	}
 
 	// Get hosts in ready status from bmhHostList
@@ -199,7 +187,7 @@ func fetchBmhHostList(ctx context.Context, r *HardwareClassificationReconciler, 
 		}
 	}
 
-	return validHostList
+	return validHostList, bmhHostList
 }
 
 // extractHardwareDetails this function will return map containing
@@ -255,3 +243,4 @@ func checkDiskCount(extractedProfile hwcc.ExpectedHardwareConfiguration) error {
 	}
 	return nil
 }
+
