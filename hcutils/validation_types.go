@@ -1,4 +1,4 @@
-package validationModel
+package hcutils
 
 //RAM contains ram details fetched from the introspection data
 type RAM struct {

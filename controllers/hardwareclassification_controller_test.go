@@ -1,12 +1,13 @@
 package controllers
 
 import (
-	"context"
 	"fmt"
 	hwcc "hardware-classification-controller/api/v1alpha1"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	utils "hardware-classification-controller/hcutils"
 
 	bmoapis "github.com/metal3-io/baremetal-operator/pkg/apis"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -21,14 +22,16 @@ var _ = Describe("Hardware Classification Controller", func() {
 	hostTest := getHosts()
 
 	c := fakeclient.NewFakeClientWithScheme(setupSchemeMm(), hostTest...)
-	r := HardwareClassificationReconciler{
-		Client: c,
-		Log:    klogr.New(),
-	}
+	hcManager := utils.NewHardwareClassificationManager(c, klogr.New())
 
 	It("Should Check the matched fetch host", func() {
-		result := fetchBmhHostList(context.TODO(), &r, getNamespace())
-		Expect(len(hostTest)).Should(Equal(len(result)))
+		result, _, err := hcManager.FetchBmhHostList(getNamespace())
+		if err != nil {
+			Expect(len(hostTest)).Should(Equal(0))
+		} else {
+			Expect(len(hostTest)).Should(Equal(len(result)))
+		}
+
 	})
 
 	It("Should check the reconcile function", func() {

@@ -1,0 +1,180 @@
+package hcutils
+
+import (
+	"context"
+	"errors"
+	hwcc "hardware-classification-controller/api/v1alpha1"
+	"net"
+
+	"github.com/go-logr/logr"
+	bmh "github.com/metal3-io/baremetal-operator/pkg/apis/metal3/v1alpha1"
+
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+)
+
+// HardwareClassificationManager only contains a client
+type HardwareClassificationManager struct {
+	client  client.Client
+	Log     logr.Logger
+	Profile *hwcc.HardwareClassification
+}
+
+const (
+	//LabelName initial name to the label key as hardware classification group
+	LabelName = "hardwareclassification.metal3.io/"
+
+	//Status extract the baremetal host for status ready
+	Status = "ready"
+
+	//DefaultLabel if label is missing from the Extracted Hardware Profile
+	DefaultLabel = "matches"
+
+	//CPULable label for extraction of hardware details
+	CPULable = "CPU"
+
+	//NICLable label for extraction of hardware details
+	NICLable = "NIC"
+
+	//DISKLable label for extraction of hardware details
+	DISKLable = "DISK"
+
+	//RAMLable label for extraction of hardware details
+	RAMLable = "RAM"
+)
+
+// HardwareClassificationInterface important function used in reconciler
+type HardwareClassificationInterface interface {
+	FetchBmhHostList(namespace string) ([]bmh.BareMetalHost, bmh.BareMetalHostList, error)
+	ExtractAndValidateHardwareDetails(hwcc.ExpectedHardwareConfiguration, []bmh.BareMetalHost) map[string]map[string]interface{}
+	DeleteLabels(ctx context.Context, hcMetaData v1.ObjectMeta, BMHList bmh.BareMetalHostList) error
+	SetLabel(ctx context.Context, hcMetaData v1.ObjectMeta, comparedHost []string, BMHList bmh.BareMetalHostList, extractedLabels map[string]string) error
+	MinMaxComparison(ProfileName string, validatedHost map[string]map[string]interface{}, expectedHardwareprofile hwcc.ExpectedHardwareConfiguration) []string
+}
+
+//NewHardwareClassificationManager return new hardware classification manager
+func NewHardwareClassificationManager(client client.Client, log logr.Logger) HardwareClassificationInterface {
+	return HardwareClassificationManager{
+		client: client,
+		Log:    log,
+	}
+
+}
+
+//FetchBmhHostList this function will fetch and return baremetal hosts in ready state
+func (mgr HardwareClassificationManager) FetchBmhHostList(Namespace string) ([]bmh.BareMetalHost, bmh.BareMetalHostList, error) {
+
+	ctx := context.Background()
+
+	bmhHostList := bmh.BareMetalHostList{}
+	var validHostList []bmh.BareMetalHost
+
+	opts := &client.ListOptions{
+		Namespace: Namespace,
+	}
+
+	// Get list of BareMetalHost from BMO
+	err := mgr.client.List(ctx, &bmhHostList, opts)
+	if err != nil {
+		return validHostList, bmhHostList, errors.New(err.Error())
+	}
+
+	// Get hosts in ready status from bmhHostList
+	for _, host := range bmhHostList.Items {
+		if host.Status.Provisioning.State == "ready" {
+			validHostList = append(validHostList, host)
+		}
+	}
+
+	if len(validHostList) == 0 {
+		return validHostList, bmhHostList, errors.New("No new host in ready state")
+	}
+
+	return validHostList, bmhHostList, nil
+}
+
+//CheckValidIP uses net package to check if the IP is valid or not
+func CheckValidIP(NICIp string) bool {
+	return net.ParseIP(NICIp) != nil
+}
+
+//ConvertBytesToGb it converts the Byte into GB
+func ConvertBytesToGb(inBytes int64) int64 {
+	inGb := (inBytes / 1024 / 1024 / 1024)
+	return inGb
+}
+
+//DeleteLabels delete existing label of the baremetal host
+func (mgr HardwareClassificationManager) DeleteLabels(ctx context.Context, hcMetaData v1.ObjectMeta, BMHList bmh.BareMetalHostList) error {
+
+	// label for the baremetal host
+	labelKey := LabelName + hcMetaData.Name
+
+	// Delete existing labels for the same profile.
+	for _, host := range BMHList.Items {
+
+		if host.Status.Provisioning.State == Status {
+
+			existingLabels := host.GetLabels()
+
+			for key := range existingLabels {
+				if key == labelKey {
+					delete(existingLabels, key)
+				}
+			}
+
+			host.SetLabels(existingLabels)
+
+			err := mgr.client.Update(ctx, &host)
+			if err != nil {
+				return errors.New("Label Delete Failed")
+			}
+		}
+	}
+
+	return nil
+}
+
+//SetLabel update the labels of the comapred baremetal host
+func (mgr HardwareClassificationManager) SetLabel(ctx context.Context, hcMetaData v1.ObjectMeta, comparedHost []string, BMHList bmh.BareMetalHostList, extractedLabels map[string]string) error {
+
+	// label for the baremetal host
+	labelKey := LabelName + hcMetaData.Name
+
+	for _, validHost := range comparedHost {
+		for _, host := range BMHList.Items {
+			m := make(map[string]string)
+			if validHost == host.Name {
+				// Getting all the existing labels on the matched host.
+				availableLabels := host.GetLabels()
+				mgr.Log.Info("Existing Labels ", validHost, availableLabels)
+
+				for key, value := range availableLabels {
+					m[key] = value
+				}
+				if extractedLabels != nil {
+					for _, value := range extractedLabels {
+						if value == "" {
+							m[labelKey] = DefaultLabel
+						} else {
+							m[labelKey] = value
+						}
+					}
+				} else {
+					m[labelKey] = DefaultLabel
+				}
+				mgr.Log.Info("Labels to be applied ", validHost, m)
+
+				// Setting labels on the matched host.
+				host.SetLabels(m)
+				err := mgr.client.Update(ctx, &host)
+				if err != nil {
+					return errors.New(err.Error())
+				}
+
+			}
+		}
+	}
+
+	return nil
+}
