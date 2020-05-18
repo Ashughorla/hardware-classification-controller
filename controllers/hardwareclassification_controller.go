@@ -17,27 +17,28 @@ package controllers
 
 import (
 	"context"
-	"errors"
+	"fmt"
+
+	"github.com/pkg/errors"
 
 	"github.com/go-logr/logr"
 
 	hwcc "hardware-classification-controller/api/v1alpha1"
 
 	bmh "github.com/metal3-io/baremetal-operator/pkg/apis/metal3/v1alpha1"
-	"k8s.io/apimachinery/pkg/runtime"
-
-	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	ctrl "sigs.k8s.io/controller-runtime"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
+	"k8s.io/apimachinery/pkg/runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
 // HardwareClassificationReconciler reconciles a HardwareClassification object
 type HardwareClassificationReconciler struct {
-	client.Client
+	Client client.Client
 	Log    logr.Logger
 	Scheme *runtime.Scheme
 }
@@ -61,22 +62,24 @@ func (r *HardwareClassificationReconciler) Reconcile(req ctrl.Request) (ctrl.Res
 	// Get ExpectedHardwareConfiguraton from hardwareClassification
 	extractedProfile := hardwareClassification.Spec.ExpectedHardwareConfiguration
 
-	// Checking Disk Count present or not if Disk individual size is present
-	if extractedProfile.Disk != nil {
-		if err := checkDiskCount(extractedProfile); err != nil {
-			r.Log.Error(nil, "Disk count error", "Error", err.Error())
-			return ctrl.Result{}, nil
-		}
-	}
-
 	r.Log.Info("Extracted hardware configurations successfully", "Profile", extractedProfile)
 
 	// fetch BMH list from BMO
-	validHostList := fetchBmhHostList(ctx, r, hardwareClassification.ObjectMeta.Namespace)
+	validHostList, err := fetchBmhHostList(ctx, r, hardwareClassification.ObjectMeta.Namespace)
+
+	if err != nil {
+		//hardwareClassification.Status.ErrorType = hwcc.FetchBMHListFailure
+		//hardwareClassification.Status.ErrorMessage = "Unable to fetch BMH list from BMO"
+		//hardwareClassification.SetErrorMessage(hwcc.FetchBMHListFailure, "Unable to fetch BMH list from BMO")
+		//r.Client.Status().Update(ctx, hardwareClassification)
+		r.setErrorCondition(req, hardwareClassification, hwcc.FetchBMHListFailure, "Unable to fetch BMH list from BMO")
+		//r.saveHWCCStatus(hardwareClassification)
+		fmt.Println("Status Updated**********************", hardwareClassification.Status)
+		return ctrl.Result{}, nil
+	}
 
 	if len(validHostList) == 0 {
-		err := errors.New("No BareMetal Host found in ready state")
-		r.Log.Error(err, "Error Occurred")
+		r.Log.Info("No BareMetal Host found in ready state")
 		return ctrl.Result{}, nil
 	}
 
@@ -89,7 +92,7 @@ func (r *HardwareClassificationReconciler) Reconcile(req ctrl.Request) (ctrl.Res
 }
 
 // fetchBmhHostList this function will fetch and return baremetal hosts in ready state
-func fetchBmhHostList(ctx context.Context, r *HardwareClassificationReconciler, namespace string) []bmh.BareMetalHost {
+func fetchBmhHostList(ctx context.Context, r *HardwareClassificationReconciler, namespace string) ([]bmh.BareMetalHost, error) {
 
 	bmhHostList := bmh.BareMetalHostList{}
 	var validHostList []bmh.BareMetalHost
@@ -100,9 +103,9 @@ func fetchBmhHostList(ctx context.Context, r *HardwareClassificationReconciler, 
 
 	// Get list of BareMetalHost from BMO
 	err := r.Client.List(ctx, &bmhHostList, opts)
+	err = errors.New("Unable to fetch BMH list")
 	if err != nil {
-		r.Log.Error(nil, "Unable to extract details", "error", err.Error())
-		return validHostList
+		return validHostList, err
 	}
 
 	// Get hosts in ready status from bmhHostList
@@ -112,7 +115,7 @@ func fetchBmhHostList(ctx context.Context, r *HardwareClassificationReconciler, 
 		}
 	}
 
-	return validHostList
+	return validHostList, nil
 }
 
 // extractHardwareDetails this function will return map containing
@@ -150,6 +153,55 @@ func extractHardwareDetails(extractedProfile hwcc.ExpectedHardwareConfiguration,
 	return extractedHardwareDetails
 }
 
+func (r *HardwareClassificationReconciler) setErrorCondition(request ctrl.Request, hardwareClassification *hwcc.HardwareClassification, errType hwcc.ErrorType, message string) (changed bool, err error) {
+	var log = logf.Log.WithName("controller.HardwareClassification")
+
+	reqLogger := log.WithValues("Request.Namespace",
+		request.Namespace, "Request.Name", request.Name)
+
+	changed = hardwareClassification.SetErrorMessage(errType, message)
+	if changed {
+		reqLogger.Info(
+			"adding error message",
+			"message", message,
+		)
+		err = r.saveHWCCStatus(hardwareClassification)
+		if err != nil {
+			err = errors.Wrap(err, "failed to update error message")
+		}
+	}
+
+	return
+}
+
+func (r *HardwareClassificationReconciler) saveHWCCStatus(hcc *hwcc.HardwareClassification) error {
+	//t := metav1.Now()
+	//host.Status.LastUpdated = &t
+
+	/*if err := r.saveHostAnnotation(host); err != nil {
+		return err
+	}*/
+
+	//Refetch hwcc again
+	obj := hcc.Status.DeepCopy()
+	err := r.Client.Get(context.TODO(),
+
+		client.ObjectKey{
+			Name:      hcc.Name,
+			Namespace: hcc.Namespace,
+		},
+		hcc,
+	)
+	if err != nil {
+		return errors.Wrap(err, "Failed to update Status")
+	}
+
+	hcc.Status = *obj
+	err = r.Client.Status().Update(context.TODO(), hcc)
+	fmt.Println("HCC after update*************", hcc.Status)
+	return err
+}
+
 // SetupWithManager will add watches for this controller
 func (r *HardwareClassificationReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
@@ -159,14 +211,4 @@ func (r *HardwareClassificationReconciler) SetupWithManager(mgr ctrl.Manager) er
 			handler.Funcs{},
 		).
 		Complete(r)
-}
-
-// checkDiskCount will check if disk size is provided then count should be mandatory
-func checkDiskCount(extractedProfile hwcc.ExpectedHardwareConfiguration) error {
-	if (extractedProfile.Disk.MinimumIndividualSizeGB > 0) || (extractedProfile.Disk.MaximumIndividualSizeGB > 0) {
-		if (extractedProfile.Disk.MinimumCount <= 0) && (extractedProfile.Disk.MaximumCount <= 0) {
-			return errors.New("disk count is mandatory if disk individual size is given")
-		}
-	}
-	return nil
 }

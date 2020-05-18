@@ -95,13 +95,45 @@ type RAM struct {
 	MaximumSizeGB int `json:"maximumSizeGB" description:"maximum size of ram, greater than 0"`
 }
 
+// ErrorType indicates the class of problem that has caused the HCC resource
+// to enter an error state.
+type ErrorType string
+
+const (
+	// LabelUpdateFailure is an error condition occurring when the
+	// controller is unalble to update label of BareMetalHost.
+	LabelUpdateFailure ErrorType = "label update error"
+
+	// LabelDeleteFailure is an error condition occurring when the
+	// controller is unalble to delete label of BareMetalHost.
+	LabelDeleteFailure ErrorType = "label delete error"
+
+	// FetchBMHListFailure is an error condition occurring when the
+	// controller is unable to fetch BMH from BMO
+	FetchBMHListFailure ErrorType = "fetch BMH from BMO error"
+)
+
 // HardwareClassificationStatus defines the observed state of HardwareClassification
 type HardwareClassificationStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+
+	// ErrorType indicates the type of failure encountered when the
+	// OperationalStatus is OperationalStatusError
+	// +kubebuilder:validation:Enum=registration error;inspection error;provisioning error;power management error
+	ErrorType ErrorType `json:"errorType,omitempty"`
+
+	// ProfileMatchStatus identifies whether a given profile is matched or not
+	ProfileMatchStatus string `json:"profileMatchStatus"`
+
+	// The last error message reported by the hardwareclassification system
+	ErrorMessage string `json:"errorMessage"`
 }
 
 // +kubebuilder:object:root=true
+// +kubebuilder:subresource:status
+// +kubebuilder:printcolumn:name="ProfileMatchStatus",type="string",JSONPath=".status.ProfileMatchStatus",description="Profile Match Status"
+// +kubebuilder:printcolumn:name="Error",type="string",JSONPath=".status.errorMessage",description="Most recent error"
 
 // HardwareClassification is the Schema for the hardwareclassifications API
 type HardwareClassification struct {
@@ -110,6 +142,36 @@ type HardwareClassification struct {
 
 	Spec   HardwareClassificationSpec   `json:"spec"`
 	Status HardwareClassificationStatus `json:"status,omitempty"`
+}
+
+// SetErrorMessage updates the ErrorMessage in the host Status struct
+// when necessary and returns true when a change is made or false when
+// no change is made.
+func (hcc *HardwareClassification) SetErrorMessage(errType ErrorType, message string) (dirty bool) {
+	if hcc.Status.ErrorType != errType {
+		hcc.Status.ErrorType = errType
+		dirty = true
+	}
+	if hcc.Status.ErrorMessage != message {
+		hcc.Status.ErrorMessage = message
+		dirty = true
+	}
+	return dirty
+}
+
+// ClearError removes any existing error message.
+func (hcc *HardwareClassification) ClearError() (dirty bool) {
+	//dirty = host.SetOperationalStatus(OperationalStatusOK)
+	var emptyErrType ErrorType = ""
+	if hcc.Status.ErrorType != emptyErrType {
+		hcc.Status.ErrorType = emptyErrType
+		dirty = true
+	}
+	if hcc.Status.ErrorMessage != "" {
+		hcc.Status.ErrorMessage = ""
+		dirty = true
+	}
+	return dirty
 }
 
 // +kubebuilder:object:root=true
