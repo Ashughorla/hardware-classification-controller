@@ -13,6 +13,10 @@ func getNamespace() string {
 	return "metal3"
 }
 
+func getTestProfileName() string {
+	return "testProfileName"
+}
+
 func getExtractedHardwareProfile() hwcc.ExpectedHardwareConfiguration {
 
 	return hwcc.ExpectedHardwareConfiguration{

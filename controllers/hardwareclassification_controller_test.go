@@ -43,11 +43,36 @@ var _ = Describe("Hardware Classification Controller", func() {
 		} else {
 			validatedHardwareDetails := hcManager.ExtractAndValidateHardwareDetails(getExtractedHardwareProfile(), result)
 
+			fmt.Println(validatedHardwareDetails)
 			if len(validatedHardwareDetails) != 0 {
-				Expect(len(hostTest)).Should(Equal(0))
-			} else {
 				fmt.Println("Validated Host", validatedHardwareDetails)
 				Expect(len(hostTest)).Should(Equal(len(validatedHardwareDetails)))
+			} else {
+				Expect(len(hostTest)).Should(Equal(0))
+			}
+		}
+
+	})
+
+	It("Should Check the compared host list name", func() {
+		result, _, err := hcManager.FetchBmhHostList(getNamespace())
+		if err != nil {
+			Expect(len(hostTest)).Should(Equal(0))
+		} else {
+			validatedHardwareDetails := hcManager.ExtractAndValidateHardwareDetails(getExtractedHardwareProfile(), result)
+
+			fmt.Println(validatedHardwareDetails)
+			if len(validatedHardwareDetails) != 0 {
+				fmt.Println("Validated Host", validatedHardwareDetails)
+				comparedHost := hcManager.MinMaxComparison(getTestProfileName(), validatedHardwareDetails, getExtractedHardwareProfile())
+				if len(comparedHost) != 0 {
+					Expect(comparedHost)
+				} else {
+					Expect(len(hostTest)).Should(Equal(0))
+				}
+
+			} else {
+				Expect(len(hostTest)).Should(Equal(0))
 			}
 		}
 
