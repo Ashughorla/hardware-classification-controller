@@ -22,7 +22,6 @@ import (
 	"github.com/go-logr/logr"
 
 	hwcc "hardware-classification-controller/api/v1alpha1"
-	filter "hardware-classification-controller/classification_filter"
 	utils "hardware-classification-controller/hcutils"
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -76,7 +75,7 @@ func (hcReconiler *HardwareClassificationReconciler) Reconcile(req ctrl.Request)
 	validatedHardwareDetails := hcManager.ExtractAndValidateHardwareDetails(extractedProfile, hostList)
 	hcReconiler.Log.Info("Validated Hardware Details From Baremetal Hosts", validatedHardwareDetails)
 
-	comparedHost := filter.MinMaxComparison(hardwareClassification.ObjectMeta.Name, validatedHardwareDetails, extractedProfile)
+	comparedHost := hcManager.MinMaxComparison(hardwareClassification.ObjectMeta.Name, validatedHardwareDetails, extractedProfile)
 	hcReconiler.Log.Info("Comapred Baremetal Hosts list Against User Profile ", comparedHost)
 
 	err = hcManager.DeleteLabels(ctx, hardwareClassification.ObjectMeta, BMHList)
