@@ -1,4 +1,4 @@
-package hcutils
+package hcmanager
 
 //RAM contains ram details fetched from the introspection data
 type RAM struct {

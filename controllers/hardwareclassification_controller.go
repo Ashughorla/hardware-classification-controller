@@ -22,7 +22,7 @@ import (
 	"github.com/go-logr/logr"
 
 	hwcc "hardware-classification-controller/api/v1alpha1"
-	utils "hardware-classification-controller/hcutils"
+	utils "hardware-classification-controller/hcmanager"
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 

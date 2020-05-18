@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	utils "hardware-classification-controller/hcutils"
+	utils "hardware-classification-controller/hcmanager"
 
 	bmoapis "github.com/metal3-io/baremetal-operator/pkg/apis"
 	"k8s.io/apimachinery/pkg/runtime"

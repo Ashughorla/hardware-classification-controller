@@ -1,4 +1,4 @@
-package hcutils
+package hcmanager
 
 import (
 	hwcc "hardware-classification-controller/api/v1alpha1"
