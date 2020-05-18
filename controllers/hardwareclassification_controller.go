@@ -61,35 +61,41 @@ func (hcReconiler *HardwareClassificationReconciler) Reconcile(req ctrl.Request)
 	}
 	// Get ExpectedHardwareConfiguraton from hardwareClassification
 	extractedProfile := hardwareClassification.Spec.ExpectedHardwareConfiguration
-
 	hcReconiler.Log.Info("Extracted hardware configurations successfully", "Profile", extractedProfile)
 
+	//Get the new hardware classification manager
 	hcManager := utils.NewHardwareClassificationManager(hcReconiler.Client, hcReconiler.Log)
 
+	//Fetch baremetal host list for the given namespace
 	hostList, BMHList, err := hcManager.FetchBmhHostList(hardwareClassification.ObjectMeta.Namespace)
 	if err != nil {
 		hcReconiler.Log.Error(err, "Fetch Baremetal Host List Failed")
 		return ctrl.Result{}, nil
 	}
 
+	//Extract the hardware details from the baremetal host list
 	validatedHardwareDetails := hcManager.ExtractAndValidateHardwareDetails(extractedProfile, hostList)
 	hcReconiler.Log.Info("Validated Hardware Details From Baremetal Hosts", "Validated Host List", validatedHardwareDetails)
 
+	//Comapre the host list with extracted profile and fetch the valid host names
 	comparedHost := hcManager.MinMaxComparison(hardwareClassification.ObjectMeta.Name, validatedHardwareDetails, extractedProfile)
 	hcReconiler.Log.Info("Comapred Baremetal Hosts list Against User Profile ", "Compared Host Names", comparedHost)
 
+	//Delete the existing label if any to add new label
 	err = hcManager.DeleteLabels(ctx, hardwareClassification.ObjectMeta, BMHList)
 	if err != nil {
 		hcReconiler.Log.Error(err, "Deleting Existing Baremetal Host Label Failed")
 		return ctrl.Result{}, nil
 	}
 
+	//set new labels to the valid host
 	hcManager.SetLabel(ctx, hardwareClassification.ObjectMeta, comparedHost, BMHList, hardwareClassification.ObjectMeta.Labels)
 	if err != nil {
 		hcReconiler.Log.Error(err, "Updating Baremetal Host Label Failed")
 		return ctrl.Result{}, nil
 	}
 
+	//empty the reference object
 	hardwareClassification = &hwcc.HardwareClassification{}
 	return ctrl.Result{}, nil
 }
