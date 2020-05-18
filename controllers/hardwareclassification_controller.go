@@ -66,7 +66,7 @@ func (hcReconiler *HardwareClassificationReconciler) Reconcile(req ctrl.Request)
 
 	hcManager := utils.NewHardwareClassificationManager(hcReconiler.Client, hcReconiler.Log)
 
-	hostList, BMHList, err := hcManager.FetchBmhHostList(hardwareClassification.ObjectMeta.Namespace)
+	hostList, _, err := hcManager.FetchBmhHostList(hardwareClassification.ObjectMeta.Namespace)
 	if err != nil {
 		hcReconiler.Log.Error(err, "Fetch Baremetal Host List Failed")
 		return ctrl.Result{}, nil
@@ -75,20 +75,20 @@ func (hcReconiler *HardwareClassificationReconciler) Reconcile(req ctrl.Request)
 	validatedHardwareDetails := hcManager.ExtractAndValidateHardwareDetails(extractedProfile, hostList)
 	hcReconiler.Log.Info("Validated Hardware Details From Baremetal Hosts", validatedHardwareDetails)
 
-	comparedHost := hcManager.MinMaxComparison(hardwareClassification.ObjectMeta.Name, validatedHardwareDetails, extractedProfile)
-	hcReconiler.Log.Info("Comapred Baremetal Hosts list Against User Profile ", comparedHost)
+	// comparedHost := hcManager.MinMaxComparison(hardwareClassification.ObjectMeta.Name, validatedHardwareDetails, extractedProfile)
+	// hcReconiler.Log.Info("Comapred Baremetal Hosts list Against User Profile ", comparedHost)
 
-	err = hcManager.DeleteLabels(ctx, hardwareClassification.ObjectMeta, BMHList)
-	if err != nil {
-		hcReconiler.Log.Error(err, "Deleting Existing Baremetal Host Label Failed")
-		return ctrl.Result{}, nil
-	}
+	// err = hcManager.DeleteLabels(ctx, hardwareClassification.ObjectMeta, BMHList)
+	// if err != nil {
+	// 	hcReconiler.Log.Error(err, "Deleting Existing Baremetal Host Label Failed")
+	// 	return ctrl.Result{}, nil
+	// }
 
-	hcManager.SetLabel(ctx, hardwareClassification.ObjectMeta, comparedHost, BMHList, hardwareClassification.ObjectMeta.Labels)
-	if err != nil {
-		hcReconiler.Log.Error(err, "Updating Baremetal Host Label Failed")
-		return ctrl.Result{}, nil
-	}
+	// hcManager.SetLabel(ctx, hardwareClassification.ObjectMeta, comparedHost, BMHList, hardwareClassification.ObjectMeta.Labels)
+	// if err != nil {
+	// 	hcReconiler.Log.Error(err, "Updating Baremetal Host Label Failed")
+	// 	return ctrl.Result{}, nil
+	// }
 
 	hardwareClassification = &hwcc.HardwareClassification{}
 	return ctrl.Result{}, nil
