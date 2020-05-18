@@ -75,8 +75,8 @@ func (hcReconiler *HardwareClassificationReconciler) Reconcile(req ctrl.Request)
 	validatedHardwareDetails := hcManager.ExtractAndValidateHardwareDetails(extractedProfile, hostList)
 	hcReconiler.Log.Info("Validated Hardware Details From Baremetal Hosts", "Validated Host List", validatedHardwareDetails)
 
-	// comparedHost := hcManager.MinMaxComparison(hardwareClassification.ObjectMeta.Name, validatedHardwareDetails, extractedProfile)
-	// hcReconiler.Log.Info("Comapred Baremetal Hosts list Against User Profile ", comparedHost)
+	comparedHost := hcManager.MinMaxComparison(hardwareClassification.ObjectMeta.Name, validatedHardwareDetails, extractedProfile)
+	hcReconiler.Log.Info("Comapred Baremetal Hosts list Against User Profile ", "Compared Host Names", comparedHost)
 
 	// err = hcManager.DeleteLabels(ctx, hardwareClassification.ObjectMeta, BMHList)
 	// if err != nil {
