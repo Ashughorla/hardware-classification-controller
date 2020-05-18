@@ -69,10 +69,10 @@ func getHosts() []runtime.Object {
 					bmh.Storage{Name: "/dev/sdb", SizeBytes: 599550590976},
 					bmh.Storage{Name: "/dev/sdc", SizeBytes: 599550590976},
 					bmh.Storage{Name: "/dev/sdd", SizeBytes: 599550590976},
-					bmh.Storage{Name: "/dev/sde", SizeBytes: 599550590976}
-					bmh.Storage{Name: "/dev/sdf", SizeBytes: 599550590976}
+					bmh.Storage{Name: "/dev/sde", SizeBytes: 599550590976},
+					bmh.Storage{Name: "/dev/sdf", SizeBytes: 599550590976},
 					bmh.Storage{Name: "/dev/sdg", SizeBytes: 599550590976},
-					bmh.Storage{Name: "/dev/sdh", SizeBytes: 599550590976}
+					bmh.Storage{Name: "/dev/sdh", SizeBytes: 599550590976},
 					bmh.Storage{Name: "/dev/sdi", SizeBytes: 599550590976}},
 				SystemVendor: bmh.HardwareSystemVendor{Manufacturer: "Dell Inc.",ProductName: "PowerEdge R740xd (SKU=NotProvided;ModelName=PowerEdge R740xd)",SerialNumber: "D2XKS13"},
 			},
@@ -98,10 +98,10 @@ func getHosts() []runtime.Object {
 					bmh.Storage{Name: "/dev/sdb", SizeBytes: 599550590976},
 					bmh.Storage{Name: "/dev/sdc", SizeBytes: 599550590976},
 					bmh.Storage{Name: "/dev/sdd", SizeBytes: 599550590976},
-					bmh.Storage{Name: "/dev/sde", SizeBytes: 599550590976}
-					bmh.Storage{Name: "/dev/sdf", SizeBytes: 599550590976}
+					bmh.Storage{Name: "/dev/sde", SizeBytes: 599550590976},
+					bmh.Storage{Name: "/dev/sdf", SizeBytes: 599550590976},
 					bmh.Storage{Name: "/dev/sdg", SizeBytes: 599550590976},
-					bmh.Storage{Name: "/dev/sdh", SizeBytes: 599550590976}
+					bmh.Storage{Name: "/dev/sdh", SizeBytes: 599550590976},
 					bmh.Storage{Name: "/dev/sdi", SizeBytes: 599550590976}},
 				SystemVendor: bmh.HardwareSystemVendor{Manufacturer: "Dell Inc.",ProductName: "PowerEdge R740xd (SKU=NotProvided;ModelName=PowerEdge R740xd)",SerialNumber: "D2XKS13"},
 			},
@@ -129,10 +129,10 @@ func getHosts() []runtime.Object {
 					bmh.Storage{Name: "/dev/sdb", SizeBytes: 599550590976},
 					bmh.Storage{Name: "/dev/sdc", SizeBytes: 599550590976},
 					bmh.Storage{Name: "/dev/sdd", SizeBytes: 599550590976},
-					bmh.Storage{Name: "/dev/sde", SizeBytes: 599550590976}
-					bmh.Storage{Name: "/dev/sdf", SizeBytes: 599550590976}
+					bmh.Storage{Name: "/dev/sde", SizeBytes: 599550590976},
+					bmh.Storage{Name: "/dev/sdf", SizeBytes: 599550590976},
 					bmh.Storage{Name: "/dev/sdg", SizeBytes: 599550590976},
-					bmh.Storage{Name: "/dev/sdh", SizeBytes: 599550590976}
+					bmh.Storage{Name: "/dev/sdh", SizeBytes: 599550590976},
 					bmh.Storage{Name: "/dev/sdi", SizeBytes: 599550590976}},
 				SystemVendor: bmh.HardwareSystemVendor{Manufacturer: "Dell Inc.",ProductName: "PowerEdge R740xd (SKU=NotProvided;ModelName=PowerEdge R740xd)",SerialNumber: "D2XKS13"},
 			},
@@ -160,10 +160,10 @@ func getHosts() []runtime.Object {
 					bmh.Storage{Name: "/dev/sdb", SizeBytes: 599550590976},
 					bmh.Storage{Name: "/dev/sdc", SizeBytes: 599550590976},
 					bmh.Storage{Name: "/dev/sdd", SizeBytes: 599550590976},
-					bmh.Storage{Name: "/dev/sde", SizeBytes: 599550590976}
-					bmh.Storage{Name: "/dev/sdf", SizeBytes: 599550590976}
+					bmh.Storage{Name: "/dev/sde", SizeBytes: 599550590976},
+					bmh.Storage{Name: "/dev/sdf", SizeBytes: 599550590976},
 					bmh.Storage{Name: "/dev/sdg", SizeBytes: 599550590976},
-					bmh.Storage{Name: "/dev/sdh", SizeBytes: 599550590976}
+					bmh.Storage{Name: "/dev/sdh", SizeBytes: 599550590976},
 					bmh.Storage{Name: "/dev/sdi", SizeBytes: 599550590976}},
 				SystemVendor: bmh.HardwareSystemVendor{Manufacturer: "Dell Inc.",ProductName: "PowerEdge R740xd (SKU=NotProvided;ModelName=PowerEdge R740xd)",SerialNumber: "D2XKS13"},
 			},
