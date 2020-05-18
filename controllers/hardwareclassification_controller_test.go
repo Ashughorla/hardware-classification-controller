@@ -26,6 +26,8 @@ var _ = Describe("Hardware Classification Controller", func() {
 
 	It("Should Check the matched fetch host", func() {
 		result, _, err := hcManager.FetchBmhHostList(getNamespace())
+		fmt.Println("Fetched Host", result)
+
 		if err != nil {
 			Expect(len(hostTest)).Should(Equal(0))
 		} else {
