@@ -78,17 +78,17 @@ func (hcReconiler *HardwareClassificationReconciler) Reconcile(req ctrl.Request)
 	comparedHost := hcManager.MinMaxComparison(hardwareClassification.ObjectMeta.Name, validatedHardwareDetails, extractedProfile)
 	hcReconiler.Log.Info("Comapred Baremetal Hosts list Against User Profile ", "Compared Host Names", comparedHost)
 
-	// err = hcManager.DeleteLabels(ctx, hardwareClassification.ObjectMeta, BMHList)
-	// if err != nil {
-	// 	hcReconiler.Log.Error(err, "Deleting Existing Baremetal Host Label Failed")
-	// 	return ctrl.Result{}, nil
-	// }
+	err = hcManager.DeleteLabels(ctx, hardwareClassification.ObjectMeta, BMHList)
+	if err != nil {
+		hcReconiler.Log.Error(err, "Deleting Existing Baremetal Host Label Failed")
+		return ctrl.Result{}, nil
+	}
 
-	// hcManager.SetLabel(ctx, hardwareClassification.ObjectMeta, comparedHost, BMHList, hardwareClassification.ObjectMeta.Labels)
-	// if err != nil {
-	// 	hcReconiler.Log.Error(err, "Updating Baremetal Host Label Failed")
-	// 	return ctrl.Result{}, nil
-	// }
+	hcManager.SetLabel(ctx, hardwareClassification.ObjectMeta, comparedHost, BMHList, hardwareClassification.ObjectMeta.Labels)
+	if err != nil {
+		hcReconiler.Log.Error(err, "Updating Baremetal Host Label Failed")
+		return ctrl.Result{}, nil
+	}
 
 	hardwareClassification = &hwcc.HardwareClassification{}
 	return ctrl.Result{}, nil
