@@ -66,7 +66,7 @@ func (hcReconiler *HardwareClassificationReconciler) Reconcile(req ctrl.Request)
 
 	hcManager := utils.NewHardwareClassificationManager(hcReconiler.Client, hcReconiler.Log)
 
-	hostList, _, err := hcManager.FetchBmhHostList(hardwareClassification.ObjectMeta.Namespace)
+	hostList, BMHList, err := hcManager.FetchBmhHostList(hardwareClassification.ObjectMeta.Namespace)
 	if err != nil {
 		hcReconiler.Log.Error(err, "Fetch Baremetal Host List Failed")
 		return ctrl.Result{}, nil
