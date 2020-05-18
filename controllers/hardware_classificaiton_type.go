@@ -13,7 +13,34 @@ func getNamespace() string {
 	return "metal3"
 }
 
-func getExtractedHardwareProfile() []runtime.Object {
+func getExtractedHardwareProfile() hwcc.ExpectedHardwareConfiguration {
+
+	return hwcc.ExpectedHardwareConfiguration{
+		CPU: &hwcc.CPU{
+			MaximumCount: 1,
+			MinimumCount: 1,
+			MaximumSpeed: "1.2",
+			MinimumSpeed: "1",
+		},
+		Disk: &hwcc.Disk{
+			MaximumCount:            2,
+			MaximumIndividualSizeGB: 1000,
+			MinimumCount:            1,
+			MinimumIndividualSizeGB: 500,
+		},
+		NIC: &hwcc.NIC{
+			MaximumCount: 2,
+			MinimumCount: 1,
+		},
+		RAM: &hwcc.RAM{
+			MaximumSizeGB: 16,
+			MinimumSizeGB: 8,
+		},
+	}
+
+}
+
+func getExtractedHardwareProfileRuntime() []runtime.Object {
 	expectedHardwareClassification := hwcc.ExpectedHardwareConfiguration{
 		CPU: &hwcc.CPU{
 			MaximumCount: 1,

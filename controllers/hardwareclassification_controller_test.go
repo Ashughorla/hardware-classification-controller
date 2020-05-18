@@ -36,8 +36,25 @@ var _ = Describe("Hardware Classification Controller", func() {
 
 	})
 
+	It("Should Check the validated function return the hardware details list", func() {
+		result, _, err := hcManager.FetchBmhHostList(getNamespace())
+		if err != nil {
+			Expect(len(hostTest)).Should(Equal(0))
+		} else {
+			validatedHardwareDetails := hcManager.ExtractAndValidateHardwareDetails(getExtractedHardwareProfile(), result)
+
+			if len(validatedHardwareDetails) != 0 {
+				Expect(len(hostTest)).Should(Equal(0))
+			} else {
+				fmt.Println("Validated Host", validatedHardwareDetails)
+				Expect(len(hostTest)).Should(Equal(len(validatedHardwareDetails)))
+			}
+		}
+
+	})
+
 	It("Should check the reconcile function", func() {
-		config := getExtractedHardwareProfile()
+		config := getExtractedHardwareProfileRuntime()
 		c := fakeclient.NewFakeClientWithScheme(setupSchemeMm(), config...)
 		hardwareReconciler := &HardwareClassificationReconciler{
 			Client: c,
