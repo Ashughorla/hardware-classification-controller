@@ -21,24 +21,24 @@ func getExtractedHardwareProfile() hwcc.ExpectedHardwareConfiguration {
 
 	return hwcc.ExpectedHardwareConfiguration{
 		CPU: &hwcc.CPU{
-			MaximumCount: 1,
-			MinimumCount: 1,
-			MaximumSpeed: "1.2",
-			MinimumSpeed: "1",
+			MaximumCount: 32,
+			MinimumCount: 32,
+			MaximumSpeed: "4.4",
+			MinimumSpeed: "4.4",
 		},
 		Disk: &hwcc.Disk{
-			MaximumCount:            2,
-			MaximumIndividualSizeGB: 1000,
-			MinimumCount:            1,
-			MinimumIndividualSizeGB: 500,
+			MaximumCount:            9,
+			MaximumIndividualSizeGB: 558,
+			MinimumCount:            9,
+			MinimumIndividualSizeGB: 558,
 		},
 		NIC: &hwcc.NIC{
-			MaximumCount: 2,
-			MinimumCount: 1,
+			MaximumCount: 4,
+			MinimumCount: 4,
 		},
 		RAM: &hwcc.RAM{
-			MaximumSizeGB: 16,
-			MinimumSizeGB: 8,
+			MaximumSizeGB: 192,
+			MinimumSizeGB: 192,
 		},
 	}
 
