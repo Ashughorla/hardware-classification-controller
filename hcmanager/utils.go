@@ -59,10 +59,6 @@ func (mgr HardwareClassificationManager) FetchBmhHostList(Namespace string) ([]b
 		}
 	}
 
-	if len(validHostList) == 0 {
-		return validHostList, bmhHostList, errors.New("No new host in ready state")
-	}
-
 	return validHostList, bmhHostList, nil
 }
 

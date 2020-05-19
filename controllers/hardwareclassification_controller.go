@@ -17,17 +17,18 @@ package controllers
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/go-logr/logr"
+	"github.com/pkg/errors"
 
 	hwcc "hardware-classification-controller/api/v1alpha1"
 	utils "hardware-classification-controller/hcmanager"
 
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
+
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -69,7 +70,12 @@ func (hcReconiler *HardwareClassificationReconciler) Reconcile(req ctrl.Request)
 	//Fetch baremetal host list for the given namespace
 	hostList, BMHList, err := hcManager.FetchBmhHostList(hardwareClassification.ObjectMeta.Namespace)
 	if err != nil {
-		hcReconiler.Log.Error(err, "Fetch Baremetal Host List Failed")
+		hcReconiler.setErrorCondition(req, hardwareClassification, hwcc.FetchBMHListFailure, "Unable to fetch BMH list from BMO")
+		return ctrl.Result{}, nil
+	}
+
+	if len(hostList) == 0 {
+		hcReconiler.Log.Info("No BareMetalHost found in ready state")
 		return ctrl.Result{}, nil
 	}
 
@@ -84,20 +90,74 @@ func (hcReconiler *HardwareClassificationReconciler) Reconcile(req ctrl.Request)
 	//Delete the existing label if any to add new label
 	err = hcManager.DeleteLabels(ctx, hardwareClassification.ObjectMeta, BMHList)
 	if err != nil {
-		hcReconiler.Log.Error(err, "Deleting Existing Baremetal Host Label Failed")
+		hcReconiler.setErrorCondition(req, hardwareClassification, hwcc.LabelDeleteFailure, "Failed to delete existing labels of BareMetalHost")
+		//hcReconiler.Log.Error(err, "Deleting Existing Baremetal Host Label Failed")
 		return ctrl.Result{}, nil
 	}
 
 	//set new labels to the valid host
 	hcManager.SetLabel(ctx, hardwareClassification.ObjectMeta, comparedHost, BMHList, hardwareClassification.ObjectMeta.Labels)
 	if err != nil {
-		hcReconiler.Log.Error(err, "Updating Baremetal Host Label Failed")
+		hcReconiler.setErrorCondition(req, hardwareClassification, hwcc.LabelUpdateFailure, "Updating Baremetal Host Label Failed")
+		//hcReconiler.Log.Error(err, "Updating Baremetal Host Label Failed")
 		return ctrl.Result{}, nil
 	}
 
-	//empty the reference object
-	hardwareClassification = &hwcc.HardwareClassification{}
+	// Reaching this point means the profile matched to one of BaremetalHost,
+	// so clear any previous error and record the matched status in the
+	// status block.
+	hcReconiler.Log.Info(Info("updating ProfileMatchStatus status field")
+	hcReconiler.Log.Info("clearing previous error message")
+
+	hardwareClassification.ClearError()
+	hardwareClassification.Status.ProfileMatchStatus = "matched"
+	r.saveHWCCStatus(hardwareClassification)
+
 	return ctrl.Result{}, nil
+}
+
+func (hcReconiler *HardwareClassificationReconciler) setErrorCondition(request ctrl.Request, hardwareClassification *hwcc.HardwareClassification, errType hwcc.ErrorType, message string) (changed bool, err error) {
+	var log = logf.Log.WithName("controller.HardwareClassification")
+
+	reqLogger := log.WithValues("Request.Namespace",
+		request.Namespace, "Request.Name", request.Name)
+
+	changed = hardwareClassification.SetErrorMessage(errType, message)
+	if changed {
+		reqLogger.Info(
+			"adding error message",
+			"message", message,
+		)
+		err = hcReconiler.saveHWCCStatus(hardwareClassification)
+		if err != nil {
+			err = errors.Wrap(err, "failed to update error message")
+		}
+	}
+
+	return
+}
+
+func (hcReconiler *HardwareClassificationReconciler) saveHWCCStatus(hcc *hwcc.HardwareClassification) error {
+	//t := metav1.Now()
+	//host.Status.LastUpdated = &t
+
+	//Refetch hwcc again
+	obj := hcc.Status.DeepCopy()
+	err := hcReconiler.Client.Get(context.TODO(),
+
+		client.ObjectKey{
+			Name:      hcc.Name,
+			Namespace: hcc.Namespace,
+		},
+		hcc,
+	)
+	if err != nil {
+		return errors.Wrap(err, "Failed to update Status")
+	}
+
+	hcc.Status = *obj
+	err = hcReconiler.Client.Status().Update(context.TODO(), hcc)
+	return err
 }
 
 // SetupWithManager will add watches for this controller
@@ -106,26 +166,7 @@ func (hcReconiler *HardwareClassificationReconciler) SetupWithManager(mgr ctrl.M
 		For(&hwcc.HardwareClassification{}).
 		Watches(
 			&source.Kind{Type: &hwcc.HardwareClassification{}},
-			&handler.EnqueueRequestsFromMapFunc{
-				ToRequests: handler.ToRequestsFunc(hcReconiler.WatchHardwareClassification),
-			},
+			handler.Funcs{},
 		).
 		Complete(hcReconiler)
-}
-
-// WatchHardwareClassification will return a reconcile request for a
-// HardwareClassification if the event is for a HardwareClassification.
-func (hcReconiler *HardwareClassificationReconciler) WatchHardwareClassification(obj handler.MapObject) []ctrl.Request {
-	if profile, ok := obj.Object.(*hwcc.HardwareClassification); ok {
-		fmt.Println("In Watcher Function for name: **************", profile.ObjectMeta.Name)
-		return []ctrl.Request{
-			ctrl.Request{
-				NamespacedName: types.NamespacedName{
-					Name:      profile.ObjectMeta.Name,
-					Namespace: profile.ObjectMeta.Namespace,
-				},
-			},
-		}
-	}
-	return []ctrl.Request{}
 }
