@@ -49,21 +49,21 @@ func getExtractedHardwareProfileRuntime() []runtime.Object {
 		CPU: &hwcc.CPU{
 			MaximumCount: 1,
 			MinimumCount: 1,
-			MaximumSpeed: "1.2",
-			MinimumSpeed: "1",
+			MaximumSpeed: "3",
+			MinimumSpeed: "4",
 		},
 		Disk: &hwcc.Disk{
-			MaximumCount:            2,
-			MaximumIndividualSizeGB: 1000,
+			MaximumCount:            1,
+			MaximumIndividualSizeGB: 500,
 			MinimumCount:            1,
 			MinimumIndividualSizeGB: 500,
 		},
 		NIC: &hwcc.NIC{
-			MaximumCount: 2,
-			MinimumCount: 1,
+			MaximumCount: 1,
+			MinimumCount: 2,
 		},
 		RAM: &hwcc.RAM{
-			MaximumSizeGB: 16,
+			MaximumSizeGB: 8,
 			MinimumSizeGB: 8,
 		},
 	}

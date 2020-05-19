@@ -119,7 +119,7 @@ func (hcReconiler *HardwareClassificationReconciler) WatchHardwareClassification
 	if profile, ok := obj.Object.(*hwcc.HardwareClassification); ok {
 		fmt.Println("In Watcher Function for name: **************", profile.ObjectMeta.Name)
 		return []ctrl.Request{
-			ctrl.Request{
+			{
 				NamespacedName: types.NamespacedName{
 					Name:      profile.ObjectMeta.Name,
 					Namespace: profile.ObjectMeta.Namespace,
