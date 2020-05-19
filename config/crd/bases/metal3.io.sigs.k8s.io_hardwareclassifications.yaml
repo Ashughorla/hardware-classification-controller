@@ -11,7 +11,7 @@ spec:
   additionalPrinterColumns:
   - JSONPath: .status.ProfileMatchStatus
     description: Profile Match Status
-    name: ProfileMatch Status
+    name: ProfileMatchStatus
     type: string
   - JSONPath: .status.errorMessage
     description: Most recent error
@@ -121,17 +121,15 @@ spec:
                 system
               type: string
             errorType:
-              description: ErrorType indicates the type of failure encountered when
-                the OperationalStatus is OperationalStatusError
-              enum:
-              - registration error
-              - inspection error
-              - provisioning error
-              - power management error
+              description: ErrorType indicates the type of failure encountered
               type: string
             profileMatchStatus:
-              description: ProfileMatchStatus identifies whether a given profile is
-                matched or not
+              description: ProfileMatchStatus identifies whether a applied profile
+                is matches or not
+              enum:
+              - ""
+              - matched
+              - unmatched
               type: string
           required:
           - errorMessage

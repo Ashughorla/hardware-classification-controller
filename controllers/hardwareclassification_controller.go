@@ -74,7 +74,7 @@ func (r *HardwareClassificationReconciler) Reconcile(req ctrl.Request) (ctrl.Res
 		//r.Client.Status().Update(ctx, hardwareClassification)
 		r.setErrorCondition(req, hardwareClassification, hwcc.FetchBMHListFailure, "Unable to fetch BMH list from BMO")
 		//r.saveHWCCStatus(hardwareClassification)
-		fmt.Println("Status Updated**********************", hardwareClassification.Status)
+		//fmt.Println("Status Updated**********************", hardwareClassification.Status)
 		return ctrl.Result{}, nil
 	}
 
@@ -87,6 +87,10 @@ func (r *HardwareClassificationReconciler) Reconcile(req ctrl.Request) (ctrl.Res
 	extractedHardwareDetails := extractHardwareDetails(extractedProfile, validHostList)
 
 	r.Log.Info("Extracted hardware introspection details successfully", "IntrospectionDetails", extractedHardwareDetails)
+
+	hardwareClassification.ClearError()
+	hardwareClassification.Status.ProfileMatchStatus = "matched"
+	r.saveHWCCStatus(hardwareClassification)
 
 	return ctrl.Result{}, nil
 }
@@ -103,7 +107,7 @@ func fetchBmhHostList(ctx context.Context, r *HardwareClassificationReconciler, 
 
 	// Get list of BareMetalHost from BMO
 	err := r.Client.List(ctx, &bmhHostList, opts)
-	err = errors.New("Unable to fetch BMH list")
+	//err = errors.New("Unable to fetch BMH list")
 	if err != nil {
 		return validHostList, err
 	}
@@ -178,10 +182,6 @@ func (r *HardwareClassificationReconciler) saveHWCCStatus(hcc *hwcc.HardwareClas
 	//t := metav1.Now()
 	//host.Status.LastUpdated = &t
 
-	/*if err := r.saveHostAnnotation(host); err != nil {
-		return err
-	}*/
-
 	//Refetch hwcc again
 	obj := hcc.Status.DeepCopy()
 	err := r.Client.Get(context.TODO(),
@@ -198,7 +198,8 @@ func (r *HardwareClassificationReconciler) saveHWCCStatus(hcc *hwcc.HardwareClas
 
 	hcc.Status = *obj
 	err = r.Client.Status().Update(context.TODO(), hcc)
-	fmt.Println("HCC after update*************", hcc.Status)
+	fmt.Println("Error***************************", err)
+	fmt.Println("Profile match status", hcc.Status)
 	return err
 }
 

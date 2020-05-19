@@ -95,6 +95,14 @@ type RAM struct {
 	MaximumSizeGB int `json:"maximumSizeGB" description:"maximum size of ram, greater than 0"`
 }
 
+//
+type ProfileMatchStatus string
+
+const (
+	// Given hardware configurations matched to one of BareMetalHost
+	MatchesProfile ProfileMatchStatus = "matched"
+)
+
 // ErrorType indicates the class of problem that has caused the HCC resource
 // to enter an error state.
 type ErrorType string
@@ -118,12 +126,11 @@ type HardwareClassificationStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// ErrorType indicates the type of failure encountered when the
-	// OperationalStatus is OperationalStatusError
-	// +kubebuilder:validation:Enum=registration error;inspection error;provisioning error;power management error
+	// ErrorType indicates the type of failure encountered
 	ErrorType ErrorType `json:"errorType,omitempty"`
 
-	// ProfileMatchStatus identifies whether a given profile is matched or not
+	// ProfileMatchStatus identifies whether a applied profile is matches or not
+	// +kubebuilder:validation:Enum="";matched;unmatched
 	ProfileMatchStatus string `json:"profileMatchStatus"`
 
 	// The last error message reported by the hardwareclassification system
