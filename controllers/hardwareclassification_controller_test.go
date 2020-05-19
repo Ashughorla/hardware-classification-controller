@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"context"
 	"fmt"
 	hwcc "hardware-classification-controller/api/v1alpha1"
 
@@ -63,8 +64,9 @@ var _ = Describe("Hardware Classification Controller", func() {
 
 			fmt.Println(validatedHardwareDetails)
 			if len(validatedHardwareDetails) != 0 {
-				fmt.Println("Validated Host", validatedHardwareDetails)
+				fmt.Println("Validated Host list", validatedHardwareDetails)
 				comparedHost := hcManager.MinMaxComparison(getTestProfileName(), validatedHardwareDetails, getExtractedHardwareProfile())
+				fmt.Println("Compared Host list", comparedHost)
 				if len(comparedHost) != 0 {
 					Expect(comparedHost)
 				} else {
@@ -78,29 +80,35 @@ var _ = Describe("Hardware Classification Controller", func() {
 
 	})
 
-	// It("Should Check the if labels are set", func() {
-	// 	result, _, err := hcManager.FetchBmhHostList(getNamespace())
-	// 	if err != nil {
-	// 		Expect(len(hostTest)).Should(Equal(0))
-	// 	} else {
-	// 		validatedHardwareDetails := hcManager.ExtractAndValidateHardwareDetails(getExtractedHardwareProfile(), result)
+	It("Should Check the if labels are set", func() {
+		result, BMHList, err := hcManager.FetchBmhHostList(getNamespace())
+		if err != nil {
+			Expect(len(hostTest)).Should(Equal(0))
+		} else {
+			validatedHardwareDetails := hcManager.ExtractAndValidateHardwareDetails(getExtractedHardwareProfile(), result)
 
-	// 		fmt.Println(validatedHardwareDetails)
-	// 		if len(validatedHardwareDetails) != 0 {
-	// 			fmt.Println("Validated Host", validatedHardwareDetails)
-	// 			comparedHost := hcManager.MinMaxComparison(getTestProfileName(), validatedHardwareDetails, getExtractedHardwareProfile())
-	// 			if len(comparedHost) != 0 {
-	// 				Expect(comparedHost)
-	// 			} else {
-	// 				Expect(len(hostTest)).Should(Equal(0))
-	// 			}
+			fmt.Println(validatedHardwareDetails)
+			if len(validatedHardwareDetails) != 0 {
+				fmt.Println("Validated Host list", validatedHardwareDetails)
+				comparedHost := hcManager.MinMaxComparison(getTestProfileName(), validatedHardwareDetails, getExtractedHardwareProfile())
+				fmt.Println("Compared Host list", comparedHost)
+				if len(comparedHost) != 0 {
+					err := hcManager.SetLabel(context.TODO(), getObjectMeta(), comparedHost, BMHList, getObjectMeta().Labels)
+					if err != nil {
+						fmt.Println("Label Set Successfully")
+					} else {
+						Fail("Error updating labels")
+					}
+				} else {
+					Expect(len(hostTest)).Should(Equal(0))
+				}
 
-	// 		} else {
-	// 			Expect(len(hostTest)).Should(Equal(0))
-	// 		}
-	// 	}
+			} else {
+				Expect(len(hostTest)).Should(Equal(0))
+			}
+		}
 
-	// })
+	})
 
 	It("Should check the reconcile function", func() {
 		config := getExtractedHardwareProfileRuntime()

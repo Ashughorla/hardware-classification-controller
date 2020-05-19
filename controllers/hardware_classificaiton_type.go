@@ -44,6 +44,10 @@ func getExtractedHardwareProfile() hwcc.ExpectedHardwareConfiguration {
 
 }
 
+func getObjectMeta() metav1.ObjectMeta {
+	return metav1.ObjectMeta{Name: "hardwareclassification-test", Labels: map[string]string{"hardwareclassification-sample": "matches"}}
+}
+
 func getExtractedHardwareProfileRuntime() []runtime.Object {
 	expectedHardwareClassification := hwcc.ExpectedHardwareConfiguration{
 		CPU: &hwcc.CPU{
