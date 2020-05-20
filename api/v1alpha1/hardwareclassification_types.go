@@ -95,6 +95,22 @@ type RAM struct {
 	MaximumSizeGB int `json:"maximumSizeGB" description:"maximum size of ram, greater than 0"`
 }
 
+// ProfileMatchStatus represents the state of the HardwareClassification
+type ProfileMatchStatus string
+
+const (
+	// ProfileMatchStatusEmpty is the default status value
+	ProfileMatchStatusEmpty ProfileMatchStatus = ""
+
+	// ProfileMatchStatusMatched is the status value for when the profile
+	// matches to one of the BareMtalHost.
+	ProfileMatchStatusMatched ProfileMatchStatus = "matched"
+
+	// ProfileMatchStatusUnMatched is the status value for when the profile
+	// not matches to one of the BareMtalHost.
+	ProfileMatchStatusUnMatched ProfileMatchStatus = "unmached"
+)
+
 // ErrorType indicates the class of problem that has caused the HCC resource
 // to enter an error state.
 type ErrorType string
@@ -122,8 +138,7 @@ type HardwareClassificationStatus struct {
 	ErrorType ErrorType `json:"errorType,omitempty"`
 
 	// ProfileMatchStatus identifies whether a applied profile is matches or not
-	// +kubebuilder:validation:Enum="";matched;unmatched
-	ProfileMatchStatus string `json:"profileMatchStatus"`
+	ProfileMatchStatus ProfileMatchStatus `json:"profileMatchStatus"`
 
 	// The last error message reported by the hardwareclassification system
 	ErrorMessage string `json:"errorMessage"`
@@ -131,7 +146,7 @@ type HardwareClassificationStatus struct {
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
-// +kubebuilder:printcolumn:name="ProfileMatchStatus",type="string",JSONPath=".status.ProfileMatchStatus",description="Profile Match Status"
+// +kubebuilder:printcolumn:name="ProfileMatchStatus",type="string",JSONPath=".status.profileMatchStatus",description="Profile Match Status"
 // +kubebuilder:printcolumn:name="Error",type="string",JSONPath=".status.errorMessage",description="Most recent error"
 
 // HardwareClassification is the Schema for the hardwareclassifications API
@@ -141,6 +156,16 @@ type HardwareClassification struct {
 
 	Spec   HardwareClassificationSpec   `json:"spec,omitempty"`
 	Status HardwareClassificationStatus `json:"status,omitempty"`
+}
+
+// SetProfileMatchStatus updates the ProfileMatchStatus field and returns
+// true when a change is made or false when no change is made.
+func (hcc *HardwareClassification) SetProfileMatchStatus(status ProfileMatchStatus) bool {
+	if hcc.Status.ProfileMatchStatus != status {
+		hcc.Status.ProfileMatchStatus = status
+		return true
+	}
+	return false
 }
 
 // SetErrorMessage updates the ErrorMessage in the host Status struct
@@ -160,7 +185,6 @@ func (hcc *HardwareClassification) SetErrorMessage(errType ErrorType, message st
 
 // ClearError removes any existing error message.
 func (hcc *HardwareClassification) ClearError() (dirty bool) {
-	//dirty = host.SetOperationalStatus(OperationalStatusOK)
 	var emptyErrType ErrorType = ""
 	if hcc.Status.ErrorType != emptyErrType {
 		hcc.Status.ErrorType = emptyErrType
