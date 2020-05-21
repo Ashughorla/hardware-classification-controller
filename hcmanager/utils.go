@@ -48,7 +48,6 @@ func (mgr HardwareClassificationManager) FetchBmhHostList(Namespace string) ([]b
 
 	// Get list of BareMetalHost from BMO
 	err := mgr.client.List(ctx, &bmhHostList, opts)
-	err = errors.New("Failed to fetch BMH")
 	if err != nil {
 		return validHostList, bmhHostList, errors.New(err.Error())
 	}
