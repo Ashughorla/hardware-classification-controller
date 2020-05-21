@@ -1,7 +1,6 @@
 package hcmanager
 
 import (
-	"errors"
 	hwcc "hardware-classification-controller/api/v1alpha1"
 
 	bmh "github.com/metal3-io/baremetal-operator/pkg/apis/metal3/v1alpha1"
@@ -9,14 +8,9 @@ import (
 
 // ExtractAndValidateHardwareDetails this function will return map containing introspection details for a host.
 func (mgr HardwareClassificationManager) ExtractAndValidateHardwareDetails(extractedProfile hwcc.ExpectedHardwareConfiguration,
-	bmhList []bmh.BareMetalHost) (map[string]map[string]interface{}, error) {
+	bmhList []bmh.BareMetalHost) map[string]map[string]interface{} {
 
 	validatedHostMap := make(map[string]map[string]interface{})
-
-	if extractedProfile.CPU == nil && extractedProfile.Disk == nil && extractedProfile.NIC == nil && extractedProfile.RAM == nil {
-		err := errors.New("Atleast one-of the configuration should be passed")
-		return nil, err
-	}
 
 	if extractedProfile != (hwcc.ExpectedHardwareConfiguration{}) {
 		for _, host := range bmhList {
@@ -73,5 +67,5 @@ func (mgr HardwareClassificationManager) ExtractAndValidateHardwareDetails(extra
 			}
 		}
 	}
-	return validatedHostMap, nil
+	return validatedHostMap
 }

@@ -80,13 +80,7 @@ func (hcReconciler *HardwareClassificationReconciler) Reconcile(req ctrl.Request
 	}
 
 	//Extract the hardware details from the baremetal host list
-	validatedHardwareDetails, err := hcManager.ExtractAndValidateHardwareDetails(extractedProfile, hostList)
-
-	if err != nil {
-		errMessage := "Atleast one-of the configuration should be passed"
-		hcReconciler.handleErrorConditions(req, hardwareClassification, hwcc.ProfileMisConfigured, errMessage, hwcc.ProfileMatchStatusEmpty)
-		return ctrl.Result{}, nil
-	}
+	validatedHardwareDetails := hcManager.ExtractAndValidateHardwareDetails(extractedProfile, hostList)
 
 	hcReconciler.Log.Info("Validated Hardware Details From Baremetal Hosts", "Validated Host List", validatedHardwareDetails)
 

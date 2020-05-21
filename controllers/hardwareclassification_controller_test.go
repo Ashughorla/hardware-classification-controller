@@ -41,7 +41,7 @@ var _ = Describe("Hardware Classification Controller", func() {
 		if err != nil {
 			Expect(len(hostTest)).Should(Equal(0))
 		} else {
-			validatedHardwareDetails, _ := hcManager.ExtractAndValidateHardwareDetails(getExtractedHardwareProfile(), result)
+			validatedHardwareDetails := hcManager.ExtractAndValidateHardwareDetails(getExtractedHardwareProfile(), result)
 
 			fmt.Println(validatedHardwareDetails)
 			if len(validatedHardwareDetails) != 0 {
@@ -59,7 +59,7 @@ var _ = Describe("Hardware Classification Controller", func() {
 		if err != nil {
 			Expect(len(hostTest)).Should(Equal(0))
 		} else {
-			validatedHardwareDetails, _ := hcManager.ExtractAndValidateHardwareDetails(getExtractedHardwareProfile(), result)
+			validatedHardwareDetails := hcManager.ExtractAndValidateHardwareDetails(getExtractedHardwareProfile(), result)
 
 			fmt.Println(validatedHardwareDetails)
 			if len(validatedHardwareDetails) != 0 {

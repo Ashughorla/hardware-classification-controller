@@ -127,9 +127,6 @@ const (
 	// FetchBMHListFailure is an error condition occurring when the
 	// controller is unable to fetch BMH from BMO
 	FetchBMHListFailure ErrorType = "fetch BMH from BMO error"
-
-	// ProfileMisConfigured is an error condition when profile is mis-configured
-	ProfileMisConfigured ErrorType = "profile is misconfigured"
 )
 
 // HardwareClassificationStatus defines the observed state of HardwareClassification
