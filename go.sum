@@ -570,6 +570,7 @@ github.com/metal3-io/baremetal-operator v0.0.0-20200221162300-f1e463d45c7d h1:30
 github.com/metal3-io/baremetal-operator v0.0.0-20200221162300-f1e463d45c7d/go.mod h1:o9ta8R2EEtSiQY53sXdoM50v5531G0oS+lC58Gcm+1Y=
 github.com/metal3-io/baremetal-operator v0.0.0-20200504161654-60716c6e110e h1:t08pAmb3I460IUKXy7Kf+GDWJ9x6xT4/wm4wbUzj0/s=
 github.com/metal3-io/baremetal-operator v0.0.0-20200504161654-60716c6e110e/go.mod h1:YchHO4DvhUxSsxkSZ+M37ec38EjC3UxcSUMmcheq2xA=
+github.com/metal3-io/baremetal-operator v0.0.0-20200520185342-ff1a153dd727 h1:LLA4OVs4QMgovMo23iu8JCLt5RpCIloUmG92Ow0QbPk=
 github.com/miekg/dns v1.0.14/go.mod h1:W1PPwlIAgtquWBMBEV9nkV9Cazfe8ScdGz/Lj7v3Nrg=
 github.com/miekg/dns v1.1.15/go.mod h1:W1PPwlIAgtquWBMBEV9nkV9Cazfe8ScdGz/Lj7v3Nrg=
 github.com/miekg/dns v1.1.22/go.mod h1:bPDLeHnStXmXAq1m/Ch/hvfNHr14JKNPMBo3VZKjuso=

@@ -48,7 +48,6 @@ func (mgr HardwareClassificationManager) FetchBmhHostList(Namespace string) ([]b
 
 	// Get list of BareMetalHost from BMO
 	err := mgr.client.List(ctx, &bmhHostList, opts)
-	//err = errors.New("Failed to fetch BMH")
 	if err != nil {
 		return validHostList, bmhHostList, errors.New(err.Error())
 	}
@@ -96,7 +95,6 @@ func (mgr HardwareClassificationManager) DeleteLabels(ctx context.Context, hcMet
 			host.SetLabels(existingLabels)
 
 			err := mgr.client.Update(ctx, &host)
-			err = errors.New("Failed to delete error")
 			if err != nil {
 				return errors.New("Label Delete Failed")
 			}
@@ -107,60 +105,7 @@ func (mgr HardwareClassificationManager) DeleteLabels(ctx context.Context, hcMet
 }
 
 //SetLabel update the labels of the comapred baremetal host
-/*func (mgr HardwareClassificationManager) SetLabel(ctx context.Context, hcMetaData v1.ObjectMeta, comparedHost []string, BMHList bmh.BareMetalHostList, extractedLabels map[string]string) (bool, error) {
-
-	// label for the baremetal host
-	labelKey := LabelName + hcMetaData.Name
-	setLabel := false
-
-	err := mgr.DeleteLabels(ctx, hcMetaData, BMHList)
-	if err != nil {
-		fmt.Println("Error inside delete label function", err)
-		return setLabel, errors.New(err.Error())
-	}
-
-	for _, validHost := range comparedHost {
-		for _, host := range BMHList.Items {
-			m := make(map[string]string)
-			if validHost == host.Name {
-				// Getting all the existing labels on the matched host.
-				availableLabels := host.GetLabels()
-				mgr.Log.Info("Existing Labels ", validHost, availableLabels)
-
-				for key, value := range availableLabels {
-					m[key] = value
-				}
-				if extractedLabels != nil {
-					for _, value := range extractedLabels {
-						if value == "" {
-							m[labelKey] = DefaultLabel
-						} else {
-							m[labelKey] = value
-						}
-					}
-				} else {
-					m[labelKey] = DefaultLabel
-				}
-				mgr.Log.Info("Labels to be applied ", validHost, m)
-
-				// Setting labels on the matched host.
-				host.SetLabels(m)
-				err := mgr.client.Update(ctx, &host)
-				if err != nil {
-					fmt.Println("Error inside set label function", err)
-					return setLabel, errors.New(err.Error())
-				}
-				setLabel = true
-			}
-		}
-	}
-
-	return setLabel, nil
-}
-*/
-
-//SetLabel update the labels of the comapred baremetal host
-func (mgr HardwareClassificationManager) SetLabel(ctx context.Context, hcMetaData v1.ObjectMeta, comparedHost []string, BMHList bmh.BareMetalHostList, extractedLabels map[string]string) (bool, error) {
+func (mgr HardwareClassificationManager) SetLabel(ctx context.Context, hcMetaData v1.ObjectMeta, comparedHost []string, BMHList bmh.BareMetalHostList, extractedLabels map[string]string) (bool, error, error) {
 
 	// label for the baremetal host
 	labelKey := LabelName + hcMetaData.Name
@@ -193,14 +138,21 @@ func (mgr HardwareClassificationManager) SetLabel(ctx context.Context, hcMetaDat
 				// Setting labels on the matched host.
 				host.SetLabels(m)
 				err := mgr.client.Update(ctx, &host)
-				//err = errors.New("error while set label")
 				if err != nil {
-					return setLabel, errors.New(err.Error())
+					return setLabel, errors.New(err.Error()), nil
 				}
 				setLabel = true
 			}
 		}
 	}
 
-	return setLabel, nil
+	// delete existing labels
+	if !setLabel {
+		err := mgr.DeleteLabels(ctx, hcMetaData, BMHList)
+		if err != nil {
+			return setLabel, nil, errors.New(err.Error())
+		}
+	}
+
+	return setLabel, nil, nil
 }

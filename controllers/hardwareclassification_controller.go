@@ -17,7 +17,6 @@ package controllers
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
@@ -49,7 +48,6 @@ type HardwareClassificationReconciler struct {
 // +kubebuilder:rbac:groups=metal3.io.sigs.k8s.io,resources=hardwareclassifications,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=metal3.io.sigs.k8s.io,resources=hardwareclassifications/status,verbs=get;update;patch
 func (hcReconciler *HardwareClassificationReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
-	fmt.Println("Inside Reconcile Function*******************")
 	ctx := context.Background()
 
 	// Get HardwareClassificationController to get values for Namespace and ExpectedHardwareConfiguration
@@ -73,17 +71,6 @@ func (hcReconciler *HardwareClassificationReconciler) Reconcile(req ctrl.Request
 	if err != nil {
 		errMessage := "Unable to fetch BMH list from BMO"
 		hcReconciler.handleErrorConditions(req, hardwareClassification, hwcc.FetchBMHListFailure, errMessage, hwcc.ProfileMatchStatusEmpty)
-		/*hcReconciler.Log.Info("clearing previous error message")
-		hardwareClassification.ClearError()
-
-		hcReconciler.setErrorCondition(req, hardwareClassification, hwcc.FetchBMHListFailure, "Unable to fetch BMH list from BMO")
-
-		hcReconciler.Log.Info("Upating status feild as:", "ProfileMatchStatus", hwcc.ProfileMatchStatusEmpty)
-		hardwareClassification.SetProfileMatchStatus(hwcc.ProfileMatchStatusEmpty)
-		err = hcReconciler.saveHWCCStatus(hardwareClassification)
-		if err != nil {
-			hcReconciler.Log.Error(err, "Error while saving ProfileMatchStatus as empty")
-		}*/
 		return ctrl.Result{}, nil
 	}
 
@@ -93,7 +80,14 @@ func (hcReconciler *HardwareClassificationReconciler) Reconcile(req ctrl.Request
 	}
 
 	//Extract the hardware details from the baremetal host list
-	validatedHardwareDetails := hcManager.ExtractAndValidateHardwareDetails(extractedProfile, hostList)
+	validatedHardwareDetails, err := hcManager.ExtractAndValidateHardwareDetails(extractedProfile, hostList)
+
+	if err != nil {
+		errMessage := "Atleast one-of the configuration should be passed"
+		hcReconciler.handleErrorConditions(req, hardwareClassification, hwcc.ProfileMisConfigured, errMessage, hwcc.ProfileMatchStatusEmpty)
+		return ctrl.Result{}, nil
+	}
+
 	hcReconciler.Log.Info("Validated Hardware Details From Baremetal Hosts", "Validated Host List", validatedHardwareDetails)
 
 	//Comapre the host list with extracted profile and fetch the valid host names
@@ -101,20 +95,17 @@ func (hcReconciler *HardwareClassificationReconciler) Reconcile(req ctrl.Request
 	hcReconciler.Log.Info("Comapred Baremetal Hosts list Against User Profile ", "Compared Host Names", comparedHost)
 
 	// set labels to matched hosts
-	setLabel, err := hcManager.SetLabel(ctx, hardwareClassification.ObjectMeta, comparedHost, BMHList, hardwareClassification.ObjectMeta.Labels)
+	setLabel, setLabelErr, deleteLabelErr := hcManager.SetLabel(ctx, hardwareClassification.ObjectMeta, comparedHost, BMHList, hardwareClassification.ObjectMeta.Labels)
 
-	if err != nil {
+	if setLabelErr != nil {
 		errMessage := "Failed to set labels on BareMetalHost"
 		hcReconciler.handleErrorConditions(req, hardwareClassification, hwcc.LabelUpdateFailure, errMessage, hwcc.ProfileMatchStatusEmpty)
-		/*hcReconciler.Log.Info("clearing previous error message")
-		hardwareClassification.ClearError()
+		return ctrl.Result{}, nil
+	}
 
-		hcReconciler.setErrorCondition(req, hardwareClassification, hwcc.LabelUpdateFailure, "Updating Baremetal Host Label Failed")
-		hardwareClassification.SetProfileMatchStatus(hwcc.ProfileMatchStatusEmpty)
-		err = hcReconciler.saveHWCCStatus(hardwareClassification)
-		if err != nil {
-			hcReconciler.Log.Error(err, "Error while saving ProfileMatchStatus as empty")
-		}*/
+	if deleteLabelErr != nil {
+		errMessage := "Failed to delete existing labels on BareMetalHost"
+		hcReconciler.handleErrorConditions(req, hardwareClassification, hwcc.LabelDeleteFailure, errMessage, hwcc.ProfileMatchStatusEmpty)
 		return ctrl.Result{}, nil
 	}
 
@@ -122,64 +113,8 @@ func (hcReconciler *HardwareClassificationReconciler) Reconcile(req ctrl.Request
 		hcReconciler.updateProfileMatchStatus(req, hardwareClassification, hwcc.ProfileMatchStatusMatched)
 	} else {
 		hcReconciler.updateProfileMatchStatus(req, hardwareClassification, hwcc.ProfileMatchStatusUnMatched)
-		/*err = hcManager.DeleteLabels(ctx, hardwareClassification.ObjectMeta, BMHList)
-		if err != nil {
-			errMessage := "Failed to delete existing labels"
-			hcReconciler.handleErrorConditions(req, hardwareClassification, hwcc.LabelDeleteFailure, errMessage, hwcc.ProfileMatchStatusEmpty)
-			return ctrl.Result{}, nil
-		}
-		return ctrl.Result{}, nil*/
 	}
 
-	if hardwareClassification.Status.ProfileMatchStatus == hwcc.ProfileMatchStatusUnMatched {
-		err = hcManager.DeleteLabels(ctx, hardwareClassification.ObjectMeta, BMHList)
-		if err != nil {
-			errMessage := "Failed to delete existing labels"
-			hcReconciler.handleErrorConditions(req, hardwareClassification, hwcc.LabelDeleteFailure, errMessage, hwcc.ProfileMatchStatusEmpty)
-			return ctrl.Result{}, nil
-		}
-	}
-	/*if setLabel {
-		hcReconciler.Log.Info("clearing previous error message")
-		hardwareClassification.ClearError()
-
-		hardwareClassification.SetProfileMatchStatus(hwcc.ProfileMatchStatusMatched)
-
-		hcReconciler.Log.Info("updating status field as:", "ProfileMatchStatus", hardwareClassification.Status.ProfileMatchStatus)
-		err = hcReconciler.saveHWCCStatus(hardwareClassification)
-
-		if err != nil {
-			hcReconciler.Log.Error(err, "Error while saving ProfileMatchStatus as mached")
-		}
-	} else {
-		hcReconciler.Log.Info("clearing previous error message")
-		hardwareClassification.ClearError()
-
-		hardwareClassification.SetProfileMatchStatus(hwcc.ProfileMatchStatusUnMatched)
-
-		hcReconciler.Log.Info("updating status field as:", "ProfileMatchStatus", "unmached")
-		err = hcReconciler.saveHWCCStatus(hardwareClassification)
-		if err != nil {
-			hcReconciler.Log.Error(err, "Error while saving ProfileMatchStatus as unmached")
-		}
-
-	// As profile not matches to any of host, delete existing lables if any assigned
-	// for same profile earlier
-	err = hcManager.DeleteLabels(ctx, hardwareClassification.ObjectMeta, BMHList)
-	if err != nil {
-		hcReconciler.handleErrorConditions(req, hardwareClassification, hwcc.LabelDeleteFailure, hwcc.ProfileMatchStatusEmpty)
-		hcReconciler.setErrorCondition(req, hardwareClassification, hwcc.LabelDeleteFailure, "Failed to delete existing labels of Baremetal Host")
-
-		hcReconciler.Log.Info("clearing previous error message")
-		hardwareClassification.ClearError()
-
-		hardwareClassification.SetProfileMatchStatus(hwcc.ProfileMatchStatusEmpty)
-		err = hcReconciler.saveHWCCStatus(hardwareClassification)
-		if err != nil {
-			hcReconciler.Log.Error(err, "Error while saving ProfileMatchStatus as mached")
-		}
-		return ctrl.Result{}, nil
-	}*/
 	return ctrl.Result{}, nil
 }
 

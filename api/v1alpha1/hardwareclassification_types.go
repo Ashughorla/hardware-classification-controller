@@ -102,11 +102,11 @@ const (
 	// ProfileMatchStatusEmpty is the default status value
 	ProfileMatchStatusEmpty ProfileMatchStatus = ""
 
-	// ProfileMatchStatusMatched is the status value for when the profile
+	// ProfileMatchStatusMatched is the status value when the profile
 	// matches to one of the BareMtalHost.
 	ProfileMatchStatusMatched ProfileMatchStatus = "matched"
 
-	// ProfileMatchStatusUnMatched is the status value for when the profile
+	// ProfileMatchStatusUnMatched is the status value when the profile
 	// not matches to one of the BareMtalHost.
 	ProfileMatchStatusUnMatched ProfileMatchStatus = "unmached"
 )
@@ -127,6 +127,9 @@ const (
 	// FetchBMHListFailure is an error condition occurring when the
 	// controller is unable to fetch BMH from BMO
 	FetchBMHListFailure ErrorType = "fetch BMH from BMO error"
+
+	// ProfileMisConfigured is an error condition when profile is mis-configured
+	ProfileMisConfigured ErrorType = "profile is misconfigured"
 )
 
 // HardwareClassificationStatus defines the observed state of HardwareClassification
@@ -168,7 +171,7 @@ func (hcc *HardwareClassification) SetProfileMatchStatus(status ProfileMatchStat
 	return false
 }
 
-// SetErrorMessage updates the ErrorMessage in the host Status struct
+// SetErrorMessage updates the ErrorMessage in the HardwareClassification Status struct
 // when necessary and returns true when a change is made or false when
 // no change is made.
 func (hcc *HardwareClassification) SetErrorMessage(errType ErrorType, message string) (dirty bool) {
