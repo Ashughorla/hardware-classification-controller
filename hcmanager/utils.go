@@ -139,7 +139,7 @@ func (mgr HardwareClassificationManager) SetLabel(ctx context.Context, hcMetaDat
 				host.SetLabels(m)
 				err := mgr.client.Update(ctx, &host)
 				if err != nil {
-					return setLabel, errors.New(err.Error()), nil
+					return setLabel, errors.New("Failed to set label on host" + validHost + "Error :" + err.Error()), nil
 				}
 				setLabel = true
 			}

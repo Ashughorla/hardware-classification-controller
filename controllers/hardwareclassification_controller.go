@@ -100,8 +100,8 @@ func (hcReconciler *HardwareClassificationReconciler) Reconcile(req ctrl.Request
 	setLabel, setLabelErr, deleteLabelErr := hcManager.SetLabel(ctx, hardwareClassification.ObjectMeta, comparedHost, BMHList, hardwareClassification.ObjectMeta.Labels)
 
 	if setLabelErr != nil {
-		errMessage := "Failed to set labels on BareMetalHost"
-		hcReconciler.handleErrorConditions(req, hardwareClassification, hwcc.LabelUpdateFailure, errMessage, hwcc.ProfileMatchStatusEmpty)
+
+		hcReconciler.handleErrorConditions(req, hardwareClassification, hwcc.LabelUpdateFailure, setLabelErr.Error(), hwcc.ProfileMatchStatusEmpty)
 		return ctrl.Result{}, nil
 	}
 
