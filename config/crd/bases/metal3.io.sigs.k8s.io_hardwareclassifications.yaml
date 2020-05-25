@@ -8,6 +8,15 @@ metadata:
   creationTimestamp: null
   name: hardwareclassifications.metal3.io.sigs.k8s.io
 spec:
+  additionalPrinterColumns:
+  - JSONPath: .status.profileMatchStatus
+    description: Profile Match Status
+    name: ProfileMatchStatus
+    type: string
+  - JSONPath: .status.errorMessage
+    description: Most recent error
+    name: Error
+    type: string
   group: metal3.io.sigs.k8s.io
   names:
     kind: HardwareClassification
@@ -15,6 +24,8 @@ spec:
     plural: hardwareclassifications
     singular: hardwareclassification
   scope: Namespaced
+  subresources:
+    status: {}
   validation:
     openAPIV3Schema:
       description: HardwareClassification is the Schema for the hardwareclassifications
@@ -104,6 +115,21 @@ spec:
         status:
           description: HardwareClassificationStatus defines the observed state of
             HardwareClassification
+          properties:
+            errorMessage:
+              description: The last error message reported by the hardwareclassification
+                system
+              type: string
+            errorType:
+              description: ErrorType indicates the type of failure encountered
+              type: string
+            profileMatchStatus:
+              description: ProfileMatchStatus identifies whether a applied profile
+                is matches or not
+              type: string
+          required:
+          - errorMessage
+          - profileMatchStatus
           type: object
       type: object
   version: v1alpha1

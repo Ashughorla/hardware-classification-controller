@@ -59,10 +59,6 @@ func (mgr HardwareClassificationManager) FetchBmhHostList(Namespace string) ([]b
 		}
 	}
 
-	if len(validHostList) == 0 {
-		return validHostList, bmhHostList, errors.New("No new host in ready state")
-	}
-
 	return validHostList, bmhHostList, nil
 }
 
@@ -77,7 +73,7 @@ func ConvertBytesToGb(inBytes int64) int64 {
 	return inGb
 }
 
-//DeleteLabels delete existing label of the baremetal host
+// DeleteLabels delete existing label of the baremetal host
 func (mgr HardwareClassificationManager) DeleteLabels(ctx context.Context, hcMetaData v1.ObjectMeta, BMHList bmh.BareMetalHostList) error {
 
 	// label for the baremetal host
@@ -109,10 +105,11 @@ func (mgr HardwareClassificationManager) DeleteLabels(ctx context.Context, hcMet
 }
 
 //SetLabel update the labels of the comapred baremetal host
-func (mgr HardwareClassificationManager) SetLabel(ctx context.Context, hcMetaData v1.ObjectMeta, comparedHost []string, BMHList bmh.BareMetalHostList, extractedLabels map[string]string) error {
+func (mgr HardwareClassificationManager) SetLabel(ctx context.Context, hcMetaData v1.ObjectMeta, comparedHost []string, BMHList bmh.BareMetalHostList, extractedLabels map[string]string) (bool, error, error) {
 
 	// label for the baremetal host
 	labelKey := LabelName + hcMetaData.Name
+	setLabel := false
 
 	for _, validHost := range comparedHost {
 		for _, host := range BMHList.Items {
@@ -142,12 +139,20 @@ func (mgr HardwareClassificationManager) SetLabel(ctx context.Context, hcMetaDat
 				host.SetLabels(m)
 				err := mgr.client.Update(ctx, &host)
 				if err != nil {
-					return errors.New(err.Error())
+					return setLabel, errors.New(err.Error()), nil
 				}
-
+				setLabel = true
 			}
 		}
 	}
 
-	return nil
+	// delete existing labels
+	if !setLabel {
+		err := mgr.DeleteLabels(ctx, hcMetaData, BMHList)
+		if err != nil {
+			return setLabel, nil, errors.New(err.Error())
+		}
+	}
+
+	return setLabel, nil, nil
 }

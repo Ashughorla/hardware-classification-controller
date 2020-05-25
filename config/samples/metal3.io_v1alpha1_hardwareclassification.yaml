@@ -9,15 +9,11 @@ spec:
   expectedValidationConfiguration:
       CPU:
          minimumCount: 4
-         minimumSpeed: "2.7"
       Disk:
          minimumCount: 1
          maximumCount: 1
-         minimumIndividualSizeGB: 200
-         maximumIndividualSizeGB: 3000
       RAM:
          minimumSizeGB: 6
-         maximumSizeGB: 180
       NIC:
          minimumCount: 1
-         maximumCount: 7
+
