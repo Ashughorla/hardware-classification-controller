@@ -61,52 +61,61 @@ func (hcReconciler *HardwareClassificationReconciler) Reconcile(req ctrl.Request
 	}
 	// Get ExpectedHardwareConfiguraton from hardwareClassification
 	extractedProfile := hardwareClassification.Spec.ExpectedHardwareConfiguration
-	hcReconciler.Log.Info("Extracted hardware configurations successfully", "Profile", extractedProfile)
 
-	// Get the new hardware classification manager
-	hcManager := utils.NewHardwareClassificationManager(hcReconciler.Client, hcReconciler.Log)
+	if (extractedProfile.CPU == &hwcc.CPU{}) && (extractedProfile.RAM == &hwcc.RAM{}) && (extractedProfile.Disk == &hwcc.Disk{}) && (extractedProfile.NIC == &hwcc.NIC{}) {
 
-	//Fetch baremetal host list for the given namespace
-	hostList, BMHList, err := hcManager.FetchBmhHostList(hardwareClassification.ObjectMeta.Namespace)
-	if err != nil {
-		errMessage := "Unable to fetch BMH list from BMO"
-		hcReconciler.handleErrorConditions(req, hardwareClassification, hwcc.FetchBMHListFailure, errMessage, hwcc.ProfileMatchStatusEmpty)
-		return ctrl.Result{}, nil
-	}
+		hcReconciler.Log.Info("Extracted hardware configurations successfully", "Profile", extractedProfile)
 
-	if len(hostList) == 0 {
-		hcReconciler.Log.Info("No BareMetalHost found in ready state")
-		return ctrl.Result{}, nil
-	}
+		// Get the new hardware classification manager
+		hcManager := utils.NewHardwareClassificationManager(hcReconciler.Client, hcReconciler.Log)
 
-	//Extract the hardware details from the baremetal host list
-	validatedHardwareDetails := hcManager.ExtractAndValidateHardwareDetails(extractedProfile, hostList)
+		//Fetch baremetal host list for the given namespace
+		hostList, BMHList, err := hcManager.FetchBmhHostList(hardwareClassification.ObjectMeta.Namespace)
+		if err != nil {
+			errMessage := "Unable to fetch BMH list from BMO"
+			hcReconciler.handleErrorConditions(req, hardwareClassification, hwcc.FetchBMHListFailure, errMessage, hwcc.ProfileMatchStatusEmpty)
+			return ctrl.Result{}, nil
+		}
 
-	hcReconciler.Log.Info("Validated Hardware Details From Baremetal Hosts", "Validated Host List", validatedHardwareDetails)
+		if len(hostList) == 0 {
+			hcReconciler.Log.Info("No BareMetalHost found in ready state")
+			return ctrl.Result{}, nil
+		}
 
-	//Comapre the host list with extracted profile and fetch the valid host names
-	comparedHost := hcManager.MinMaxComparison(hardwareClassification.ObjectMeta.Name, validatedHardwareDetails, extractedProfile)
-	hcReconciler.Log.Info("Comapred Baremetal Hosts list Against User Profile ", "Compared Host Names", comparedHost)
+		//Extract the hardware details from the baremetal host list
+		validatedHardwareDetails := hcManager.ExtractAndValidateHardwareDetails(extractedProfile, hostList)
 
-	// set labels to matched hosts
-	setLabel, setLabelErr, deleteLabelErr := hcManager.SetLabel(ctx, hardwareClassification.ObjectMeta, comparedHost, BMHList, hardwareClassification.ObjectMeta.Labels)
+		hcReconciler.Log.Info("Validated Hardware Details From Baremetal Hosts", "Validated Host List", validatedHardwareDetails)
 
-	if setLabelErr != nil {
-		errMessage := "Failed to set labels on BareMetalHost"
-		hcReconciler.handleErrorConditions(req, hardwareClassification, hwcc.LabelUpdateFailure, errMessage, hwcc.ProfileMatchStatusEmpty)
-		return ctrl.Result{}, nil
-	}
+		//Comapre the host list with extracted profile and fetch the valid host names
+		comparedHost := hcManager.MinMaxComparison(hardwareClassification.ObjectMeta.Name, validatedHardwareDetails, extractedProfile)
+		hcReconciler.Log.Info("Comapred Baremetal Hosts list Against User Profile ", "Compared Host Names", comparedHost)
 
-	if deleteLabelErr != nil {
-		errMessage := "Failed to delete existing labels on BareMetalHost"
-		hcReconciler.handleErrorConditions(req, hardwareClassification, hwcc.LabelDeleteFailure, errMessage, hwcc.ProfileMatchStatusEmpty)
-		return ctrl.Result{}, nil
-	}
+		// set labels to matched hosts
+		setLabel, setLabelErr, deleteLabelErr := hcManager.SetLabel(ctx, hardwareClassification.ObjectMeta, comparedHost, BMHList, hardwareClassification.ObjectMeta.Labels)
 
-	if setLabel {
-		hcReconciler.updateProfileMatchStatus(req, hardwareClassification, hwcc.ProfileMatchStatusMatched)
+		if setLabelErr != nil {
+			errMessage := "Failed to set labels on BareMetalHost"
+			hcReconciler.handleErrorConditions(req, hardwareClassification, hwcc.LabelUpdateFailure, errMessage, hwcc.ProfileMatchStatusEmpty)
+			return ctrl.Result{}, nil
+		}
+
+		if deleteLabelErr != nil {
+			errMessage := "Failed to delete existing labels on BareMetalHost"
+			hcReconciler.handleErrorConditions(req, hardwareClassification, hwcc.LabelDeleteFailure, errMessage, hwcc.ProfileMatchStatusEmpty)
+			return ctrl.Result{}, nil
+		}
+
+		if setLabel {
+			hcReconciler.updateProfileMatchStatus(req, hardwareClassification, hwcc.ProfileMatchStatusMatched)
+		} else {
+			hcReconciler.updateProfileMatchStatus(req, hardwareClassification, hwcc.ProfileMatchStatusUnMatched)
+		}
 	} else {
-		hcReconciler.updateProfileMatchStatus(req, hardwareClassification, hwcc.ProfileMatchStatusUnMatched)
+		hcReconciler.Log.Info("Expected Profile details can not be empty")
+		errMessage := "Expected Profile details can not be empty"
+		hcReconciler.handleErrorConditions(req, hardwareClassification, hwcc.LabelUpdateFailure, errMessage, hwcc.ProfileMatchStatusEmpty)
+
 	}
 
 	return ctrl.Result{}, nil
