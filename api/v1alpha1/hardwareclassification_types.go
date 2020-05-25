@@ -34,13 +34,13 @@ type HardwareClassificationSpec struct {
 // ExpectedHardwareConfiguration details to match with the host
 type ExpectedHardwareConfiguration struct {
 	// +optional
-	CPU *CPU `json:"CPU"`
+	CPU *CPU `json:"CPU,omitempty"`
 	// +optional
-	Disk *Disk `json:"Disk"`
+	Disk *Disk `json:"Disk,omitempty"`
 	// +optional
-	NIC *NIC `json:"NIC"`
+	NIC *NIC `json:"NIC,omitempty"`
 	// +optional
-	RAM *RAM `json:"RAM"`
+	RAM *RAM `json:"RAM,omitempty"`
 }
 
 // CPU contains CPU details extracted from the hardware profile
