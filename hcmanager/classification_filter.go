@@ -40,7 +40,7 @@ func (mgr HardwareClassificationManager) MinMaxComparison(ProfileName string, va
 
 			disk, DISKOK := value.(Storage)
 			if DISKOK {
-				if checkDiskDetailsl(mgr, disk, expectedHardwareprofile.Disk) {
+				if checkDiskDetails(mgr, disk, expectedHardwareprofile.Disk) {
 					isValid = true
 				}
 			}
@@ -96,6 +96,8 @@ func checkCPUCount(mgr HardwareClassificationManager, cpu CPU, expectedCPU *hwcc
 			return false
 		}
 
+	} else {
+		return false
 	}
 
 	if (expectedCPU.MaximumSpeed != "") && (expectedCPU.MinimumSpeed != "") {
@@ -143,6 +145,8 @@ func checkCPUCount(mgr HardwareClassificationManager, cpu CPU, expectedCPU *hwcc
 
 			}
 		}
+	} else {
+		return false
 	}
 
 	return true
@@ -179,6 +183,8 @@ func checkNICS(mgr HardwareClassificationManager, nics NIC, expectedNIC *hwcc.NI
 			return false
 		}
 
+	} else {
+		return false
 	}
 	return true
 }
@@ -212,12 +218,14 @@ func checkRAM(mgr HardwareClassificationManager, ram RAM, expectedRAM *hwcc.RAM)
 			return false
 		}
 
+	} else {
+		return false
 	}
 	return true
 }
 
-//checkDiskDetailsl this function checks the Disk details for both min and max parameters
-func checkDiskDetailsl(mgr HardwareClassificationManager, storage Storage, expectedDisk *hwcc.Disk) bool {
+//checkDiskDetails this function checks the Disk details for both min and max parameters
+func checkDiskDetails(mgr HardwareClassificationManager, storage Storage, expectedDisk *hwcc.Disk) bool {
 
 	if (expectedDisk.MaximumCount > 0) && (expectedDisk.MinimumCount > 0) {
 		mgr.Log.Info("", "Provided Minimum count for Disk", expectedDisk.MinimumCount, " and fetched count ", storage.Count)
@@ -239,6 +247,8 @@ func checkDiskDetailsl(mgr HardwareClassificationManager, storage Storage, expec
 			return false
 		}
 
+	} else {
+		return false
 	}
 
 	for _, disk := range storage.Disk {
@@ -267,6 +277,8 @@ func checkDiskDetailsl(mgr HardwareClassificationManager, storage Storage, expec
 				mgr.Log.Info("Disk MIN SIZE did not match")
 				return false
 			}
+		} else {
+			return false
 		}
 	}
 

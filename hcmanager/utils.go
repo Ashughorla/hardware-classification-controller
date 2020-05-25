@@ -96,7 +96,8 @@ func (mgr HardwareClassificationManager) DeleteLabels(ctx context.Context, hcMet
 
 			err := mgr.client.Update(ctx, &host)
 			if err != nil {
-				return errors.New("Label Delete Failed")
+
+				return errors.New(host.Name + " Label Delete Failed")
 			}
 		}
 	}
@@ -139,7 +140,7 @@ func (mgr HardwareClassificationManager) SetLabel(ctx context.Context, hcMetaDat
 				host.SetLabels(m)
 				err := mgr.client.Update(ctx, &host)
 				if err != nil {
-					return setLabel, errors.New("Failed to set label on host" + validHost + "Error :" + err.Error()), nil
+					return setLabel, errors.New(validHost + " " + err.Error()), nil
 				}
 				setLabel = true
 			}

@@ -92,7 +92,7 @@ func (hcReconciler *HardwareClassificationReconciler) Reconcile(req ctrl.Request
 
 	hcReconciler.Log.Info("Validated Hardware Details From Baremetal Hosts", "Validated Host List", validatedHardwareDetails)
 
-	//Comapre the host list with extracted profile and fetch the valid host names
+	//Compare the host list with extracted profile and fetch the valid host names
 	comparedHost := hcManager.MinMaxComparison(hardwareClassification.ObjectMeta.Name, validatedHardwareDetails, extractedProfile)
 	hcReconciler.Log.Info("Comapred Baremetal Hosts list Against User Profile ", "Compared Host Names", comparedHost)
 
