@@ -19,30 +19,49 @@ func (mgr HardwareClassificationManager) MinMaxComparison(ProfileName string, va
 
 			cpu, CPUOK := value.(CPU)
 			if CPUOK {
-				if checkCPUCount(mgr, cpu, expectedHardwareprofile.CPU) {
-					isValid = true
+				if (expectedHardwareprofile.CPU.MaximumCount > 0) ||
+					(expectedHardwareprofile.CPU.MinimumCount > 0) ||
+					(expectedHardwareprofile.CPU.MaximumSpeed != "") ||
+					(expectedHardwareprofile.CPU.MinimumSpeed != "") {
+					if checkCPUCount(mgr, cpu, expectedHardwareprofile.CPU) {
+						isValid = true
+					}
 				}
+
 			}
 
 			ram, RAMOK := value.(RAM)
 			if RAMOK {
-				if checkRAM(mgr, ram, expectedHardwareprofile.RAM) {
-					isValid = true
+				if (expectedHardwareprofile.RAM.MaximumSizeGB > 0) ||
+					(expectedHardwareprofile.RAM.MinimumSizeGB > 0) {
+					if checkRAM(mgr, ram, expectedHardwareprofile.RAM) {
+						isValid = true
+					}
 				}
+
 			}
 
 			nics, NICSOK := value.(NIC)
 			if NICSOK {
-				if checkNICS(mgr, nics, expectedHardwareprofile.NIC) {
-					isValid = true
+				if (expectedHardwareprofile.NIC.MaximumCount > 0) ||
+					(expectedHardwareprofile.NIC.MinimumCount > 0) {
+					if checkNICS(mgr, nics, expectedHardwareprofile.NIC) {
+						isValid = true
+					}
 				}
 			}
 
 			disk, DISKOK := value.(Storage)
 			if DISKOK {
-				if checkDiskDetails(mgr, disk, expectedHardwareprofile.Disk) {
-					isValid = true
+				if (expectedHardwareprofile.Disk.MaximumCount > 0) ||
+					(expectedHardwareprofile.Disk.MinimumCount > 0) ||
+					(expectedHardwareprofile.Disk.MaximumIndividualSizeGB > 0) ||
+					(expectedHardwareprofile.Disk.MinimumIndividualSizeGB > 0) {
+					if checkDiskDetails(mgr, disk, expectedHardwareprofile.Disk) {
+						isValid = true
+					}
 				}
+
 			}
 
 			if !isValid {
@@ -96,8 +115,6 @@ func checkCPUCount(mgr HardwareClassificationManager, cpu CPU, expectedCPU *hwcc
 			return false
 		}
 
-	} else {
-		return false
 	}
 
 	if (expectedCPU.MaximumSpeed != "") && (expectedCPU.MinimumSpeed != "") {
@@ -145,8 +162,6 @@ func checkCPUCount(mgr HardwareClassificationManager, cpu CPU, expectedCPU *hwcc
 
 			}
 		}
-	} else {
-		return false
 	}
 
 	return true
@@ -183,8 +198,6 @@ func checkNICS(mgr HardwareClassificationManager, nics NIC, expectedNIC *hwcc.NI
 			return false
 		}
 
-	} else {
-		return false
 	}
 	return true
 }
@@ -218,8 +231,6 @@ func checkRAM(mgr HardwareClassificationManager, ram RAM, expectedRAM *hwcc.RAM)
 			return false
 		}
 
-	} else {
-		return false
 	}
 	return true
 }
@@ -247,8 +258,6 @@ func checkDiskDetails(mgr HardwareClassificationManager, storage Storage, expect
 			return false
 		}
 
-	} else {
-		return false
 	}
 
 	for _, disk := range storage.Disk {
@@ -277,8 +286,6 @@ func checkDiskDetails(mgr HardwareClassificationManager, storage Storage, expect
 				mgr.Log.Info("Disk MIN SIZE did not match")
 				return false
 			}
-		} else {
-			return false
 		}
 	}
 
