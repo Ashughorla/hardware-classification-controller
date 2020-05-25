@@ -17,6 +17,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/go-logr/logr"
 	"github.com/pkg/errors"
@@ -61,6 +62,16 @@ func (hcReconciler *HardwareClassificationReconciler) Reconcile(req ctrl.Request
 	}
 	// Get ExpectedHardwareConfiguraton from hardwareClassification
 	extractedProfile := hardwareClassification.Spec.ExpectedHardwareConfiguration
+
+	fmt.Println("CPU Value", (extractedProfile.CPU))
+	fmt.Println("RAM Value", (extractedProfile.RAM))
+	fmt.Println("DISK Value", (extractedProfile.Disk))
+	fmt.Println("NICS Value", (extractedProfile.NIC))
+
+	fmt.Println("CPU", (extractedProfile.CPU == &hwcc.CPU{}))
+	fmt.Println("RAM", (extractedProfile.RAM == &hwcc.RAM{}))
+	fmt.Println("DISK", (extractedProfile.Disk == &hwcc.Disk{}))
+	fmt.Println("NICS", (extractedProfile.NIC == &hwcc.NIC{}))
 
 	if (extractedProfile.CPU == &hwcc.CPU{}) && (extractedProfile.RAM == &hwcc.RAM{}) && (extractedProfile.Disk == &hwcc.Disk{}) && (extractedProfile.NIC == &hwcc.NIC{}) {
 		hcReconciler.Log.Info("Expected Profile details can not be empty")
