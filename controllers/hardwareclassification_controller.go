@@ -62,7 +62,7 @@ func (hcReconciler *HardwareClassificationReconciler) Reconcile(req ctrl.Request
 	// Get ExpectedHardwareConfiguraton from hardwareClassification
 	extractedProfile := hardwareClassification.Spec.ExpectedHardwareConfiguration
 
-	if (extractedProfile.CPU == &hwcc.CPU{}) && (extractedProfile.RAM == &hwcc.RAM{}) && (extractedProfile.Disk == &hwcc.Disk{}) && (extractedProfile.NIC == &hwcc.NIC{}) {
+	if (extractedProfile.CPU != &hwcc.CPU{}) || (extractedProfile.RAM != &hwcc.RAM{}) || (extractedProfile.Disk != &hwcc.Disk{}) || (extractedProfile.NIC != &hwcc.NIC{}) {
 
 		hcReconciler.Log.Info("Extracted hardware configurations successfully", "Profile", extractedProfile)
 
@@ -114,7 +114,7 @@ func (hcReconciler *HardwareClassificationReconciler) Reconcile(req ctrl.Request
 	} else {
 		hcReconciler.Log.Info("Expected Profile details can not be empty")
 		errMessage := "Expected Profile details can not be empty"
-		hcReconciler.handleErrorConditions(req, hardwareClassification, hwcc.LabelUpdateFailure, errMessage, hwcc.ProfileMatchStatusEmpty)
+		hcReconciler.handleErrorConditions(req, hardwareClassification, hwcc.ProfileMisConfigured, errMessage, hwcc.ProfileMatchStatusEmpty)
 
 	}
 

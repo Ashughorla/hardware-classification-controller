@@ -108,7 +108,7 @@ const (
 
 	// ProfileMatchStatusUnMatched is the status value when the profile
 	// not matches to one of the BareMtalHost.
-	ProfileMatchStatusUnMatched ProfileMatchStatus = "unmached"
+	ProfileMatchStatusUnMatched ProfileMatchStatus = "unmatched"
 )
 
 // ErrorType indicates the class of problem that has caused the HCC resource
@@ -127,6 +127,10 @@ const (
 	// FetchBMHListFailure is an error condition occurring when the
 	// controller is unable to fetch BMH from BMO
 	FetchBMHListFailure ErrorType = "fetch BMH from BMO error"
+
+	// ProfileMisConfigured is an error condition occurring when the
+	// extracted profile is empty.
+	ProfileMisConfigured ErrorType = "Empty Profile Error"
 )
 
 // HardwareClassificationStatus defines the observed state of HardwareClassification
