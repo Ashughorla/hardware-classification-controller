@@ -3,12 +3,14 @@ package hcmanager
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net"
 
 	hwcc "hardware-classification-controller/api/v1alpha1"
 
 	bmh "github.com/metal3-io/baremetal-operator/pkg/apis/metal3/v1alpha1"
 
+	"gopkg.in/go-playground/validator.v9"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -87,6 +89,11 @@ func (mgr HardwareClassificationManager) ValidateExtractedHardwareProfile(extrac
 	if extractedProfile.CPU == nil {
 		mgr.Log.Info("WARNING CPU details are empty")
 	} else {
+
+		validate := validator.New()
+		err := validate.Struct(extractedProfile.CPU)
+		fmt.Println(err)
+
 		if (extractedProfile.CPU.MaximumCount == 0) ||
 			(extractedProfile.CPU.MinimumCount == 0) ||
 			(extractedProfile.CPU.MaximumSpeed == "") ||
