@@ -87,7 +87,7 @@ func (mgr HardwareClassificationManager) ValidateExtractedHardwareProfile(extrac
 	if extractedProfile.CPU == nil {
 		mgr.Log.Info("WARNING CPU details are empty")
 	} else if (extractedProfile.CPU == &hwcc.CPU{}) {
-		mgr.Log.Error(nil, "Extracted CPU details can not be empty")
+		mgr.Log.Error(nil, "Extracted CPU details can not be empty", "CPU", "")
 		return errors.New("Extracted CPU details can not be empty")
 	} else {
 		if (extractedProfile.CPU.MaximumCount == 0) ||

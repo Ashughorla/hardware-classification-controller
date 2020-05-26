@@ -19,7 +19,7 @@ func (hcReconciler *HardwareClassificationReconciler) updateProfileMatchStatus(r
 		hcReconciler.Log.Info("Upating status as:", "ProfileMatchStatus", status)
 		err := hcReconciler.saveHWCCStatus(hc)
 		if err != nil {
-			hcReconciler.Log.Error(err, "Error while saving ProfileMatchStatus")
+			hcReconciler.Log.Error(err, "Error while saving ProfileMatchStatus", "", "")
 		}
 	}
 }
@@ -31,7 +31,7 @@ func (hcReconciler *HardwareClassificationReconciler) handleErrorConditions(req 
 	hc.SetProfileMatchStatus(status)
 	err := hcReconciler.saveHWCCStatus(hc)
 	if err != nil {
-		hcReconciler.Log.Error(err, "Error while saving ProfileMatchStatus")
+		hcReconciler.Log.Error(err, "Error while saving ProfileMatchStatus", "", "")
 	}
 }
 
