@@ -86,6 +86,11 @@ func (mgr HardwareClassificationManager) ValidateExtractedHardwareProfile(extrac
 		return errors.New("Expected Profile details can not be empty")
 	}
 
+	fmt.Print("CPU :", extractedProfile.CPU)
+	fmt.Print("RAM :", extractedProfile.RAM)
+	fmt.Print("DISK :", extractedProfile.Disk)
+	fmt.Print("NIC :", extractedProfile.NIC)
+
 	if extractedProfile.CPU == nil {
 		mgr.Log.Info("WARNING CPU details are empty")
 	} else {
