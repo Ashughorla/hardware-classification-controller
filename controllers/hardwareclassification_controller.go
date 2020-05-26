@@ -51,7 +51,7 @@ type HardwareClassificationReconciler struct {
 func (hcReconciler *HardwareClassificationReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
 
-	metadataLog := hcReconciler.Log.WithName(HWControllerName).WithValues("metal3-harwdwareclassification", req.NamespacedName)
+	hcReconciler.Log = hcReconciler.Log.WithName(HWControllerName).WithValues("metal3-harwdwareclassification", req.NamespacedName)
 
 	// Get HardwareClassificationController to get values for Namespace and ExpectedHardwareConfiguration
 	hardwareClassification := &hwcc.HardwareClassification{}
@@ -72,7 +72,7 @@ func (hcReconciler *HardwareClassificationReconciler) Reconcile(req ctrl.Request
 	ErrValidation := hcManager.ValidateExtractedHardwareProfile(extractedProfile)
 
 	if ErrValidation != nil {
-		metadataLog.Error(ErrValidation, ErrValidation.Error())
+		hcReconciler.Log.Error(ErrValidation, ErrValidation.Error())
 		hcReconciler.handleErrorConditions(req, hardwareClassification, hwcc.ProfileMisConfigured, ErrValidation.Error(), hwcc.ProfileMatchStatusEmpty)
 		return ctrl.Result{}, nil
 	}
