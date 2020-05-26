@@ -93,12 +93,12 @@ var _ = Describe("Hardware Classification Controller", func() {
 				comparedHost := hcManager.MinMaxComparison(getTestProfileName(), validatedHardwareDetails, getExtractedHardwareProfile())
 				fmt.Println("Compared Host list", comparedHost)
 				if len(comparedHost) != 0 {
-					_, _, err := hcManager.SetLabel(context.Background(), getObjectMeta(), comparedHost, BMHList, getObjectMeta().Labels)
+					_, errHost, _ := hcManager.SetLabel(context.Background(), getObjectMeta(), comparedHost, BMHList, getObjectMeta().Labels)
 					fmt.Println("Label Update Error", err)
-					if err != nil {
-						fmt.Println("Label Set Successfully")
-					} else {
+					if len(errHost) > 0 {
 						Fail("Error updating labels")
+					} else {
+						fmt.Println("Label Set Successfully")
 					}
 				} else {
 					Expect(len(hostTest)).Should(Equal(0))

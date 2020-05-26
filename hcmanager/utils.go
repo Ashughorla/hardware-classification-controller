@@ -5,9 +5,10 @@ import (
 	"errors"
 	"net"
 
+	hwcc "hardware-classification-controller/api/v1alpha1"
+
 	bmh "github.com/metal3-io/baremetal-operator/pkg/apis/metal3/v1alpha1"
 
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -73,87 +74,31 @@ func ConvertBytesToGb(inBytes int64) int64 {
 	return inGb
 }
 
-// DeleteLabels delete existing label of the baremetal host
-func (mgr HardwareClassificationManager) DeleteLabels(ctx context.Context, hcMetaData v1.ObjectMeta, BMHList bmh.BareMetalHostList) error {
+//ValidateExtractedHardwareProfile it will validate the extracted hardware profile and log the warnings
+func (mgr HardwareClassificationManager) ValidateExtractedHardwareProfile(extractedProfile hwcc.ExpectedHardwareConfiguration) bool {
 
-	// label for the baremetal host
-	labelKey := LabelName + hcMetaData.Name
-
-	// Delete existing labels for the same profile.
-	for _, host := range BMHList.Items {
-
-		if host.Status.Provisioning.State == Status {
-
-			existingLabels := host.GetLabels()
-
-			for key := range existingLabels {
-				if key == labelKey {
-					delete(existingLabels, key)
-				}
-			}
-
-			host.SetLabels(existingLabels)
-
-			err := mgr.client.Update(ctx, &host)
-			if err != nil {
-
-				return errors.New(host.Name + " Label Delete Failed")
-			}
-		}
+	if (extractedProfile.CPU == nil) &&
+		(extractedProfile.RAM == nil) &&
+		(extractedProfile.Disk == nil) &&
+		(extractedProfile.NIC == nil) {
+		return false
 	}
 
-	return nil
-}
-
-//SetLabel update the labels of the comapred baremetal host
-func (mgr HardwareClassificationManager) SetLabel(ctx context.Context, hcMetaData v1.ObjectMeta, comparedHost []string, BMHList bmh.BareMetalHostList, extractedLabels map[string]string) (bool, error, error) {
-
-	// label for the baremetal host
-	labelKey := LabelName + hcMetaData.Name
-	setLabel := false
-
-	for _, validHost := range comparedHost {
-		for _, host := range BMHList.Items {
-			m := make(map[string]string)
-			if validHost == host.Name {
-				// Getting all the existing labels on the matched host.
-				availableLabels := host.GetLabels()
-				mgr.Log.Info("Existing Labels ", validHost, availableLabels)
-
-				for key, value := range availableLabels {
-					m[key] = value
-				}
-				if extractedLabels != nil {
-					for _, value := range extractedLabels {
-						if value == "" {
-							m[labelKey] = DefaultLabel
-						} else {
-							m[labelKey] = value
-						}
-					}
-				} else {
-					m[labelKey] = DefaultLabel
-				}
-				mgr.Log.Info("Labels to be applied ", validHost, m)
-
-				// Setting labels on the matched host.
-				host.SetLabels(m)
-				err := mgr.client.Update(ctx, &host)
-				if err != nil {
-					return setLabel, errors.New(validHost + " " + err.Error()), nil
-				}
-				setLabel = true
-			}
-		}
+	if (extractedProfile.CPU == nil) || (extractedProfile.CPU == &hwcc.CPU{}) {
+		mgr.Log.Info("WARNING CPU field is empty")
 	}
 
-	// delete existing labels
-	if !setLabel {
-		err := mgr.DeleteLabels(ctx, hcMetaData, BMHList)
-		if err != nil {
-			return setLabel, nil, errors.New(err.Error())
-		}
+	if extractedProfile.RAM == nil || (extractedProfile.RAM == &hwcc.RAM{}) {
+		mgr.Log.Info("WARNING RAM field is empty")
 	}
 
-	return setLabel, nil, nil
+	if extractedProfile.Disk == nil || (extractedProfile.Disk == &hwcc.Disk{}) {
+		mgr.Log.Info("WARNING DISK field is empty")
+	}
+
+	if extractedProfile.NIC == nil || (extractedProfile.NIC == &hwcc.NIC{}) {
+		mgr.Log.Info("WARNING NIC field is empty")
+	}
+
+	return false
 }
