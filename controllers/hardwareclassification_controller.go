@@ -34,6 +34,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
+const (
+	HWControllerName = "HardwareClassification-Controller"
+)
+
 // HardwareClassificationReconciler reconciles a HardwareClassification object
 type HardwareClassificationReconciler struct {
 	client.Client
@@ -46,6 +50,8 @@ type HardwareClassificationReconciler struct {
 // +kubebuilder:rbac:groups=metal3.io.sigs.k8s.io,resources=hardwareclassifications/status,verbs=get;update;patch
 func (hcReconciler *HardwareClassificationReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
+
+	metadataLog := hcReconciler.Log.WithName(HWControllerName).WithValues("metal3-harwdwareclassification", req.NamespacedName)
 
 	// Get HardwareClassificationController to get values for Namespace and ExpectedHardwareConfiguration
 	hardwareClassification := &hwcc.HardwareClassification{}
@@ -66,6 +72,7 @@ func (hcReconciler *HardwareClassificationReconciler) Reconcile(req ctrl.Request
 	ErrValidation := hcManager.ValidateExtractedHardwareProfile(extractedProfile)
 
 	if ErrValidation != nil {
+		metadataLog.Error(ErrValidation, ErrValidation.Error())
 		hcReconciler.handleErrorConditions(req, hardwareClassification, hwcc.ProfileMisConfigured, ErrValidation.Error(), hwcc.ProfileMatchStatusEmpty)
 		return ctrl.Result{}, nil
 	}
