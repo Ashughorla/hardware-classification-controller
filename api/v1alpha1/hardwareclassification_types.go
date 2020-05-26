@@ -46,19 +46,15 @@ type ExpectedHardwareConfiguration struct {
 // CPU contains CPU details extracted from the hardware profile
 type CPU struct {
 	// +optional
-	// +kubebuilder:validation:MinLength=1
 	// +kubebuilder:validation:Minimum=1
 	MinimumCount int `json:"minimumCount" description:"minimum cpu count, greater than 0"`
 	// +optional
-	// +kubebuilder:validation:MinLength=1
 	// +kubebuilder:validation:Minimum=1
 	MaximumCount int `json:"maximumCount" description:"maximum cpu count, greater than 0"`
 	// +optional
-	// +kubebuilder:validation:MinLength=1
 	// +kubebuilder:validation:Pattern=`^(0\.\d*[1-9]\d*|[1-9]\d*(\.\d+)?)$`
 	MinimumSpeed string `json:"minimumSpeed" description:"minimum speed of cpu, greater than 0"`
 	// +optional
-	// +kubebuilder:validation:MinLength=1
 	// +kubebuilder:validation:Pattern=`^(0\.\d*[1-9]\d*|[1-9]\d*(\.\d+)?)$`
 	MaximumSpeed string `json:"maximumSpeed" description:"maximum speed of cpu, greater than 0"`
 }

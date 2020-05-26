@@ -24,7 +24,7 @@ type HardwareClassificationInterface interface {
 	DeleteLabels(ctx context.Context, hcMetaData v1.ObjectMeta, BMHList bmh.BareMetalHostList) error
 	SetLabel(ctx context.Context, hcMetaData v1.ObjectMeta, comparedHost []string, BMHList bmh.BareMetalHostList, extractedLabels map[string]string) (bool, []string, error)
 	MinMaxComparison(ProfileName string, validatedHost map[string]map[string]interface{}, expectedHardwareprofile hwcc.ExpectedHardwareConfiguration) []string
-	ValidateExtractedHardwareProfile(hwcc.ExpectedHardwareConfiguration) bool
+	ValidateExtractedHardwareProfile(hwcc.ExpectedHardwareConfiguration) error
 }
 
 //NewHardwareClassificationManager return new hardware classification manager

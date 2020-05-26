@@ -75,30 +75,73 @@ func ConvertBytesToGb(inBytes int64) int64 {
 }
 
 //ValidateExtractedHardwareProfile it will validate the extracted hardware profile and log the warnings
-func (mgr HardwareClassificationManager) ValidateExtractedHardwareProfile(extractedProfile hwcc.ExpectedHardwareConfiguration) bool {
+func (mgr HardwareClassificationManager) ValidateExtractedHardwareProfile(extractedProfile hwcc.ExpectedHardwareConfiguration) error {
 
 	if (extractedProfile.CPU == nil) &&
 		(extractedProfile.RAM == nil) &&
 		(extractedProfile.Disk == nil) &&
 		(extractedProfile.NIC == nil) {
-		return false
+		return errors.New("Expected Profile details can not be empty")
 	}
 
-	if (extractedProfile.CPU == nil) || (extractedProfile.CPU == &hwcc.CPU{}) {
-		mgr.Log.Info("WARNING CPU field is empty")
+	if extractedProfile.CPU == nil {
+		mgr.Log.Info("WARNING CPU details are empty")
+	} else if (extractedProfile.CPU == &hwcc.CPU{}) {
+		mgr.Log.Error(nil, "Extracted CPU details can not be empty")
+		return errors.New("Extracted CPU details can not be empty")
+	} else {
+		if (extractedProfile.CPU.MaximumCount == 0) ||
+			(extractedProfile.CPU.MinimumCount == 0) ||
+			(extractedProfile.CPU.MaximumSpeed == "") ||
+			(extractedProfile.CPU.MinimumSpeed == "") {
+			mgr.Log.Error(nil, "Expected CPU details can not be empty")
+			return errors.New("Extracted CPU details can not be empty")
+		}
 	}
 
-	if extractedProfile.RAM == nil || (extractedProfile.RAM == &hwcc.RAM{}) {
-		mgr.Log.Info("WARNING RAM field is empty")
+	if extractedProfile.RAM == nil {
+		mgr.Log.Info("WARNING RAM details are empty")
+	} else if (extractedProfile.RAM == &hwcc.RAM{}) {
+		mgr.Log.Error(nil, "Extracted RAM details can not be empty")
+		return errors.New("Extracted RAM details can not be empty")
+	} else {
+		if (extractedProfile.RAM.MaximumSizeGB == 0) ||
+			(extractedProfile.RAM.MinimumSizeGB == 0) {
+			mgr.Log.Error(nil, "Extracted RAM details can not be empty")
+			return errors.New("Extracted RAM details can not be empty")
+		}
+
 	}
 
-	if extractedProfile.Disk == nil || (extractedProfile.Disk == &hwcc.Disk{}) {
-		mgr.Log.Info("WARNING DISK field is empty")
+	if extractedProfile.Disk == nil {
+		mgr.Log.Info("WARNING DISK details are empty")
+	} else if (extractedProfile.Disk == &hwcc.Disk{}) {
+		mgr.Log.Error(nil, "Extracted DISK details can not be empty")
+		return errors.New("Extracted DISK details can not be empty")
+	} else {
+		if (extractedProfile.Disk.MaximumCount == 0) ||
+			(extractedProfile.Disk.MinimumCount == 0) ||
+			(extractedProfile.Disk.MaximumIndividualSizeGB == 0) ||
+			(extractedProfile.Disk.MinimumIndividualSizeGB == 0) {
+			mgr.Log.Error(nil, "Extracted DISK details can not be empty")
+			return errors.New("Extracted DISK details can not be empty")
+		}
+
 	}
 
 	if extractedProfile.NIC == nil || (extractedProfile.NIC == &hwcc.NIC{}) {
-		mgr.Log.Info("WARNING NIC field is empty")
+		mgr.Log.Info("WARNING NIC details is empty")
+	} else if (extractedProfile.NIC == &hwcc.NIC{}) {
+		mgr.Log.Error(nil, "Extracted NIC details can not be empty")
+		return errors.New("Extracted NIC details can not be empty")
+	} else {
+
+		if (extractedProfile.NIC.MaximumCount == 0) ||
+			(extractedProfile.NIC.MinimumCount == 0) {
+			mgr.Log.Error(nil, "Extracted DISK details can not be empty")
+			return errors.New("Extracted DISK details can not be empty")
+		}
 	}
 
-	return false
+	return nil
 }

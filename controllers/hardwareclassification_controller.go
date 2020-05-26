@@ -65,10 +65,8 @@ func (hcReconciler *HardwareClassificationReconciler) Reconcile(req ctrl.Request
 
 	ErrValidation := hcManager.ValidateExtractedHardwareProfile(extractedProfile)
 
-	if ErrValidation {
-		hcReconciler.Log.Info("Expected Profile details can not be empty")
-		errMessage := "Expected Profile details can not be empty"
-		hcReconciler.handleErrorConditions(req, hardwareClassification, hwcc.ProfileMisConfigured, errMessage, hwcc.ProfileMatchStatusEmpty)
+	if ErrValidation != nil {
+		hcReconciler.handleErrorConditions(req, hardwareClassification, hwcc.ProfileMisConfigured, ErrValidation.Error(), hwcc.ProfileMatchStatusEmpty)
 		return ctrl.Result{}, nil
 	}
 
