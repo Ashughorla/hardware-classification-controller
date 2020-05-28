@@ -131,6 +131,10 @@ const (
 	// ProfileMisConfigured is an error condition occurring when the
 	// extracted profile is empty.
 	ProfileMisConfigured ErrorType = "Empty Profile Error"
+
+	// NoBMHHost is an error condition occurring when the
+	// baremetal host is empty.
+	NoBMHHost ErrorType = "No baremetal host found"
 )
 
 // HardwareClassificationStatus defines the observed state of HardwareClassification

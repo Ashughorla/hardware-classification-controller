@@ -90,7 +90,9 @@ func (hcReconciler *HardwareClassificationReconciler) Reconcile(req ctrl.Request
 	}
 
 	if len(hostList) == 0 {
+		errMessage := "No BareMetalHost found in ready state"
 		hcReconciler.Log.Info("No BareMetalHost found in ready state")
+		hcReconciler.handleErrorConditions(req, hardwareClassification, hwcc.NoBMHHost, errMessage, hwcc.ProfileMatchStatusEmpty)
 		return ctrl.Result{}, nil
 	}
 
