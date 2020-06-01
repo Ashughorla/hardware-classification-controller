@@ -3,7 +3,6 @@ package hcmanager
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net"
 
 	hwcc "hardware-classification-controller/api/v1alpha1"
@@ -84,11 +83,6 @@ func (mgr HardwareClassificationManager) ValidateExtractedHardwareProfile(extrac
 		(extractedProfile.NIC == nil) {
 		return errors.New("Expected Profile details can not be empty")
 	}
-
-	fmt.Print("CPU :", extractedProfile.CPU)
-	fmt.Print("RAM :", extractedProfile.RAM)
-	fmt.Print("DISK :", extractedProfile.Disk)
-	fmt.Print("NIC :", extractedProfile.NIC)
 
 	if extractedProfile.CPU == nil {
 		mgr.Log.Info("WARNING CPU details are empty")
