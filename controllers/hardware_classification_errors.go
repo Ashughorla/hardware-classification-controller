@@ -74,10 +74,13 @@ func (hcReconciler *HardwareClassificationReconciler) saveHWCCStatus(hcc *hwcc.H
 		hcc,
 	)
 	if err != nil {
-		return errors.Wrap(err, "Failed to update HardwareClassification Status")
+		return errors.Wrap(err, "Failed to get hcc Status")
 	}
 
 	hcc.Status = *obj
 	err = hcReconciler.Client.Status().Update(context.TODO(), hcc)
+	if err != nil {
+		return errors.Wrap(err, "Failed to update HardwareClassification Status")
+	}
 	return err
 }

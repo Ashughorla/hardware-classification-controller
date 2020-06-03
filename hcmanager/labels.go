@@ -77,9 +77,9 @@ func (mgr HardwareClassificationManager) SetLabel(ctx context.Context, hcMetaDat
 				err := mgr.client.Update(ctx, &host)
 				if err != nil {
 					errHost = append(errHost, validHost+" "+err.Error())
-
+				} else {
+					setLabel = true
 				}
-				setLabel = true
 			}
 		}
 	}
