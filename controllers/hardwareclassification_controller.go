@@ -23,6 +23,8 @@ import (
 
 	hwcc "hardware-classification-controller/api/v1alpha1"
 	utils "hardware-classification-controller/hcmanager"
+	kerrors "k8s.io/apimachinery/pkg/util/errors"
+	"sigs.k8s.io/cluster-api/util/patch"
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 
@@ -50,7 +52,7 @@ type HardwareClassificationReconciler struct {
 // Reconcile reconcile function
 // +kubebuilder:rbac:groups=metal3.io.sigs.k8s.io,resources=hardwareclassifications,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=metal3.io.sigs.k8s.io,resources=hardwareclassifications/status,verbs=get;update;patch
-func (hcReconciler *HardwareClassificationReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
+func (hcReconciler *HardwareClassificationReconciler) Reconcile(req ctrl.Request) (_ ctrl.Result, reterr error) {
 	ctx := context.Background()
 
 	// Initialize the logger with namespace
@@ -124,6 +126,19 @@ func (hcReconciler *HardwareClassificationReconciler) Reconcile(req ctrl.Request
 	} else {
 		hcReconciler.updateProfileMatchStatus(req, hardwareClassification, hwcc.ProfileMatchStatusUnMatched)
 	}
+
+	// Initialize the patch helper.
+	patchHelper, err := patch.NewHelper(hardwareClassification, hcReconciler.Client)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	defer func() {
+		// Always attempt to Patch the hardwareClassification object and status after each reconciliation.
+		if err := patchHelper.Patch(ctx, hardwareClassification); err != nil {
+			reterr = kerrors.NewAggregate([]error{reterr, err})
+		}
+	}()
 
 	return ctrl.Result{}, nil
 }
