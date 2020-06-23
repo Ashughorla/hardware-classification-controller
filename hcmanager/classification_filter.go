@@ -43,7 +43,7 @@ func (mgr HardwareClassificationManager) MinMaxComparison(ProfileName string, va
 
 			}
 
-			nics, NICSOK := value.(NICDetails)
+			nics, NICSOK := value.(int)
 			if NICSOK {
 				if (expectedHardwareprofile.NIC.MaximumCount > 0) ||
 					(expectedHardwareprofile.NIC.MinimumCount > 0) {
@@ -53,7 +53,7 @@ func (mgr HardwareClassificationManager) MinMaxComparison(ProfileName string, va
 				}
 			}
 
-			disk, DISKOK := value.(StorageDetails)
+			disk, DISKOK := value.([]bmh.Storage)
 			if DISKOK {
 				if (expectedHardwareprofile.Disk.MaximumCount > 0) ||
 					(expectedHardwareprofile.Disk.MinimumCount > 0) ||
@@ -171,21 +171,21 @@ func checkCPUCount(mgr HardwareClassificationManager, cpu bmh.CPU, expectedCPU *
 }
 
 //checkNICS this function checks the nics details for both min and max parameters
-func checkNICS(mgr HardwareClassificationManager, nics NICDetails, expectedNIC *hwcc.NIC) bool {
+func checkNICS(mgr HardwareClassificationManager, nics int, expectedNIC *hwcc.NIC) bool {
 
 	if (expectedNIC.MaximumCount > 0) && (expectedNIC.MinimumCount > 0) {
 
-		mgr.Log.Info("", "Provided Minimum Count for NICS", expectedNIC.MinimumCount, " and fetched count ", nics.Count)
-		mgr.Log.Info("", "Provided Maximum count for NICS", expectedNIC.MaximumCount, " and fetched count ", nics.Count)
-		if (expectedNIC.MinimumCount > nics.Count) || (expectedNIC.MaximumCount < nics.Count) {
+		mgr.Log.Info("", "Provided Minimum Count for NICS", expectedNIC.MinimumCount, " and fetched count ", nics)
+		mgr.Log.Info("", "Provided Maximum count for NICS", expectedNIC.MaximumCount, " and fetched count ", nics)
+		if (expectedNIC.MinimumCount > nics) || (expectedNIC.MaximumCount < nics) {
 
 			mgr.Log.Info("NICS MINMAX count did not match")
 			return false
 		}
 	} else if expectedNIC.MaximumCount > 0 {
 
-		mgr.Log.Info("", "Provided Maximum count for NICS", expectedNIC.MaximumCount, " and fetched count ", nics.Count)
-		if expectedNIC.MaximumCount < nics.Count {
+		mgr.Log.Info("", "Provided Maximum count for NICS", expectedNIC.MaximumCount, " and fetched count ", nics)
+		if expectedNIC.MaximumCount < nics {
 
 			mgr.Log.Info("NICS MAX count did not match")
 			return false
@@ -193,8 +193,8 @@ func checkNICS(mgr HardwareClassificationManager, nics NICDetails, expectedNIC *
 
 	} else if expectedNIC.MinimumCount > 0 {
 
-		mgr.Log.Info("", "Provided Minimum Count for NICS", expectedNIC.MinimumCount, " and fetched count ", nics.Count)
-		if expectedNIC.MinimumCount > nics.Count {
+		mgr.Log.Info("", "Provided Minimum Count for NICS", expectedNIC.MinimumCount, " and fetched count ", nics)
+		if expectedNIC.MinimumCount > nics {
 
 			mgr.Log.Info("NICS MIN count did not match")
 			return false
@@ -238,31 +238,31 @@ func checkRAM(mgr HardwareClassificationManager, ram int64, expectedRAM *hwcc.RA
 }
 
 //checkDiskDetails this function checks the Disk details for both min and max parameters
-func checkDiskDetails(mgr HardwareClassificationManager, storage StorageDetails, expectedDisk *hwcc.Disk) bool {
+func checkDiskDetails(mgr HardwareClassificationManager, disk []bmh.Storage, expectedDisk *hwcc.Disk) bool {
 
 	if (expectedDisk.MaximumCount > 0) && (expectedDisk.MinimumCount > 0) {
-		mgr.Log.Info("", "Provided Minimum count for Disk", expectedDisk.MinimumCount, " and fetched count ", storage.Count)
-		mgr.Log.Info("", "Provided Maximum count for Disk", expectedDisk.MaximumCount, " and fetched count ", storage.Count)
+		mgr.Log.Info("", "Provided Minimum count for Disk", expectedDisk.MinimumCount, " and fetched count ", len(disk))
+		mgr.Log.Info("", "Provided Maximum count for Disk", expectedDisk.MaximumCount, " and fetched count ", len(disk))
 
-		if (expectedDisk.MinimumCount > storage.Count) || (expectedDisk.MaximumCount < storage.Count) {
+		if (expectedDisk.MinimumCount > len(disk)) || (expectedDisk.MaximumCount < len(disk)) {
 			mgr.Log.Info("Disk MINMAX Count did not match")
 			return false
 		}
 
 	} else if expectedDisk.MaximumCount > 0 {
-		if expectedDisk.MaximumCount < storage.Count {
+		if expectedDisk.MaximumCount < len(disk) {
 			mgr.Log.Info("Disk MAX Count did not match")
 			return false
 		}
 	} else if expectedDisk.MinimumCount > 0 {
-		if expectedDisk.MinimumCount > storage.Count {
+		if expectedDisk.MinimumCount > len(disk) {
 			mgr.Log.Info("Disk MIN Count did not match")
 			return false
 		}
 
 	}
 
-	for _, disk := range storage.Disk {
+	for _, disk := range disk {
 		if expectedDisk.MaximumIndividualSizeGB > 0 && expectedDisk.MinimumIndividualSizeGB > 0 {
 
 			mgr.Log.Info("", "Provided Minimum Size for Disk", expectedDisk.MinimumIndividualSizeGB, " and fetched Size ", disk.SizeBytes)

@@ -32,34 +32,17 @@ func (mgr HardwareClassificationManager) ExtractAndValidateHardwareDetails(extra
 				for _, disk := range host.Status.HardwareDetails.Storage {
 					disks = append(disks, bmh.Storage{Name: disk.Name, SizeBytes: ConvertBytesToGb(disk.SizeBytes)})
 				}
-
-				validStorage := StorageDetails{
-					Count: len(disks),
-					Disk:  disks,
-				}
-				hardwareDetails[DISKLabel] = validStorage
+				hardwareDetails[DISKLabel] = disks
 			}
 
 			if extractedProfile.NIC != nil {
 				// Get the NIC details from the baremetal host and validate it into new structure
-				var validNICS NICDetails
-
-				for _, NIC := range host.Status.HardwareDetails.NIC {
-					if NIC.PXE && CheckValidIP(NIC.IP) {
-						validNICS.Nic.Name = NIC.Name
-						validNICS.Nic.PXE = NIC.PXE
-					}
-				}
-
-				validNICS.Count = len(host.Status.HardwareDetails.NIC)
-				hardwareDetails[NICLabel] = validNICS
+				hardwareDetails[NICLabel] = len(host.Status.HardwareDetails.NIC)
 			}
 
 			if extractedProfile.RAM != nil {
 				// Get the RAM details from the baremetal host and validate it into new structure
-				var RAM int64
-				RAM = int64(host.Status.HardwareDetails.RAMMebibytes / 1024)
-				hardwareDetails[RAMLabel] = RAM
+				hardwareDetails[RAMLabel] = int64(host.Status.HardwareDetails.RAMMebibytes / 1024)
 			}
 
 			if len(hardwareDetails) != 0 {
