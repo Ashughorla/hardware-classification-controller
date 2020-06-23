@@ -18,48 +18,48 @@ func (mgr HardwareClassificationManager) ExtractAndValidateHardwareDetails(extra
 
 			if extractedProfile.CPU != nil {
 				// Get the CPU details from the baremetal host and validate it into new structure
-				validCPU := CPU{
-					Count:      host.Status.HardwareDetails.CPU.Count,
-					ClockSpeed: float64(host.Status.HardwareDetails.CPU.ClockMegahertz) / 1000,
+				validCPU := bmh.CPU{
+					Count:          host.Status.HardwareDetails.CPU.Count,
+					ClockMegahertz: bmh.ClockSpeed(host.Status.HardwareDetails.CPU.ClockMegahertz) / 1000,
 				}
-				hardwareDetails[CPULable] = validCPU
+				hardwareDetails[CPULabel] = validCPU
 			}
 
 			if extractedProfile.Disk != nil {
 				// Get the Storage details from the baremetal host and validate it into new structure
-				var disks []Disk
+				var disks []bmh.Storage
 
 				for _, disk := range host.Status.HardwareDetails.Storage {
-					disks = append(disks, Disk{Name: disk.Name, SizeGb: ConvertBytesToGb(int64(disk.SizeBytes))})
+					disks = append(disks, bmh.Storage{Name: disk.Name, SizeBytes: ConvertBytesToGb(disk.SizeBytes)})
 				}
 
-				validStorage := Storage{
+				validStorage := StorageDetails{
 					Count: len(disks),
 					Disk:  disks,
 				}
-				hardwareDetails[DISKLable] = validStorage
+				hardwareDetails[DISKLabel] = validStorage
 			}
 
 			if extractedProfile.NIC != nil {
 				// Get the NIC details from the baremetal host and validate it into new structure
-				var validNICS NIC
+				var validNICS NICDetails
+
 				for _, NIC := range host.Status.HardwareDetails.NIC {
 					if NIC.PXE && CheckValidIP(NIC.IP) {
-						validNICS.Name = NIC.Name
-						validNICS.PXE = NIC.PXE
+						validNICS.Nic.Name = NIC.Name
+						validNICS.Nic.PXE = NIC.PXE
 					}
 				}
 
 				validNICS.Count = len(host.Status.HardwareDetails.NIC)
-				hardwareDetails[NICLable] = validNICS
+				hardwareDetails[NICLabel] = validNICS
 			}
 
 			if extractedProfile.RAM != nil {
 				// Get the RAM details from the baremetal host and validate it into new structure
-				validRAM := RAM{
-					RAMGb: host.Status.HardwareDetails.RAMMebibytes / 1024,
-				}
-				hardwareDetails[RAMLable] = validRAM
+				var RAM int64
+				RAM = int64(host.Status.HardwareDetails.RAMMebibytes / 1024)
+				hardwareDetails[RAMLabel] = RAM
 			}
 
 			if len(hardwareDetails) != 0 {

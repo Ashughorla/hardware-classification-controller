@@ -89,10 +89,10 @@ type NIC struct {
 type RAM struct {
 	// +optional
 	// +kubebuilder:validation:Minimum=1
-	MinimumSizeGB int `json:"minimumSizeGB" description:"minimun size of ram, greater than 0"`
+	MinimumSizeGB int64 `json:"minimumSizeGB" description:"minimun size of ram, greater than 0"`
 	// +optional
 	// +kubebuilder:validation:Minimum=1
-	MaximumSizeGB int `json:"maximumSizeGB" description:"maximum size of ram, greater than 0"`
+	MaximumSizeGB int64 `json:"maximumSizeGB" description:"maximum size of ram, greater than 0"`
 }
 
 // ProfileMatchStatus represents the state of the HardwareClassification

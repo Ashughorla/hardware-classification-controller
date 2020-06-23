@@ -22,17 +22,17 @@ const (
 	//DefaultLabel if label is missing from the Extracted Hardware Profile
 	DefaultLabel = "matches"
 
-	//CPULable label for extraction of hardware details
-	CPULable = "CPU"
+	//CPULabel label for extraction of hardware details
+	CPULabel = "CPU"
 
-	//NICLable label for extraction of hardware details
-	NICLable = "NIC"
+	//NICLabel label for extraction of hardware details
+	NICLabel = "NIC"
 
-	//DISKLable label for extraction of hardware details
-	DISKLable = "DISK"
+	//DISKLabel label for extraction of hardware details
+	DISKLabel = "DISK"
 
-	//RAMLable label for extraction of hardware details
-	RAMLable = "RAM"
+	//RAMLabel label for extraction of hardware details
+	RAMLabel = "RAM"
 )
 
 //FetchBmhHostList this function will fetch and return baremetal hosts in ready state
@@ -69,7 +69,7 @@ func CheckValidIP(NICIp string) bool {
 }
 
 //ConvertBytesToGb it converts the Byte into GB
-func ConvertBytesToGb(inBytes int64) int64 {
+func ConvertBytesToGb(inBytes bmh.Capacity) bmh.Capacity {
 	inGb := (inBytes / 1024 / 1024 / 1024)
 	return inGb
 }
