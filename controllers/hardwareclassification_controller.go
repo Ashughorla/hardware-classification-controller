@@ -23,7 +23,7 @@ import (
 
 	hwcc "hardware-classification-controller/api/v1alpha1"
 	utils "hardware-classification-controller/hcmanager"
-	kerrors "k8s.io/apimachinery/pkg/util/errors"
+
 	"sigs.k8s.io/cluster-api/util/patch"
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -52,7 +52,6 @@ type HardwareClassificationReconciler struct {
 // Reconcile reconcile function
 // +kubebuilder:rbac:groups=metal3.io.sigs.k8s.io,resources=hardwareclassifications,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=metal3.io.sigs.k8s.io,resources=hardwareclassifications/status,verbs=get;update;patch
-
 // Add RBAC rules to access baremetalhost resources
 // +kubebuilder:rbac:groups=metal3.io,resources=baremetalhosts,verbs=get;list;update
 // +kubebuilder:rbac:groups=metal3.io,resources=baremetalhosts/status,verbs=get
@@ -71,6 +70,19 @@ func (hcReconciler *HardwareClassificationReconciler) Reconcile(req ctrl.Request
 		}
 		return ctrl.Result{}, err
 	}
+
+	// Initialize the patch helper.
+	patchHelper, err := patch.NewHelper(hardwareClassification, hcReconciler.Client)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	// Always attempt to Patch the hardwareClassification object and status after each reconciliation.
+	defer func() {
+		if err := patchHelper.Patch(ctx, hardwareClassification); err != nil {
+			hcReconciler.Log.Info("Failed to patch hardware classification controller")
+		}
+	}()
 
 	// Get ExpectedHardwareConfiguraton from hardwareClassification
 	extractedProfile := hardwareClassification.Spec.ExpectedHardwareConfiguration
@@ -131,18 +143,9 @@ func (hcReconciler *HardwareClassificationReconciler) Reconcile(req ctrl.Request
 		hcReconciler.updateProfileMatchStatus(req, hardwareClassification, hwcc.ProfileMatchStatusUnMatched)
 	}
 
-	// Initialize the patch helper.
-	patchHelper, err := patch.NewHelper(hardwareClassification, hcReconciler.Client)
-	if err != nil {
-		return ctrl.Result{}, err
-	}
-
-	defer func() {
-		// Always attempt to Patch the hardwareClassification object and status after each reconciliation.
-		if err := patchHelper.Patch(ctx, hardwareClassification); err != nil {
-			reterr = kerrors.NewAggregate([]error{reterr, err})
-		}
-	}()
+	hardwareClassification.Status.ErrorMessage = "TestError"
+	hardwareClassification.Status.ErrorType = hwcc.LabelDeleteFailure
+	hardwareClassification.Status.ProfileMatchStatus = "unmatched"
 
 	return ctrl.Result{}, nil
 }
