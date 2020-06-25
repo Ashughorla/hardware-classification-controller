@@ -32,9 +32,6 @@ import (
 
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	"sigs.k8s.io/controller-runtime/pkg/handler"
-	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
 const (
@@ -80,7 +77,7 @@ func (hcReconciler *HardwareClassificationReconciler) Reconcile(req ctrl.Request
 	// Always attempt to Patch the hardwareClassification object and status after each reconciliation.
 	defer func() {
 		if err := patchHelper.Patch(ctx, hardwareClassification); err != nil {
-			hcReconciler.Log.Info("Failed to patch hardware classification controller")
+			hcReconciler.Log.Error(err, "Failed to patch hardware classification object and status")
 		}
 	}()
 
@@ -95,22 +92,28 @@ func (hcReconciler *HardwareClassificationReconciler) Reconcile(req ctrl.Request
 
 	if ErrValidation != nil {
 		hcReconciler.Log.Error(ErrValidation, ErrValidation.Error())
-		hcReconciler.handleErrorConditions(req, hardwareClassification, hwcc.ProfileMisConfigured, ErrValidation.Error(), hwcc.ProfileMatchStatusEmpty)
+		//hcReconciler.handleErrorConditions(req, hardwareClassification, hwcc.ProfileMisConfigured, ErrValidation.Error(), hwcc.ProfileMatchStatusEmpty)
+		hardwareClassification.Status.ProfileMatchStatus = hwcc.ProfileMatchStatusEmpty
+		hardwareClassification.Status.ErrorType = hwcc.ProfileMisConfigured
+		hardwareClassification.Status.ErrorMessage = ErrValidation.Error()
 		return ctrl.Result{}, nil
 	}
 
 	//Fetch baremetal host list for the given namespace
 	hostList, BMHList, err := hcManager.FetchBmhHostList(hardwareClassification.ObjectMeta.Namespace)
 	if err != nil {
-		errMessage := "Unable to fetch BMH list from BMO"
-		hcReconciler.handleErrorConditions(req, hardwareClassification, hwcc.FetchBMHListFailure, errMessage, hwcc.ProfileMatchStatusEmpty)
+		hcReconciler.Log.Error(err, "Failed to fetch BMH list from BMO")
+		hardwareClassification.Status.ProfileMatchStatus = hwcc.ProfileMatchStatusEmpty
+		hardwareClassification.Status.ErrorType = hwcc.FetchBMHListFailure
+		hardwareClassification.Status.ErrorMessage = "Unable to fetch BMH list from BMO"
 		return ctrl.Result{}, nil
 	}
 
 	if len(hostList) == 0 {
-		errMessage := "No BareMetalHost found in ready state"
 		hcReconciler.Log.Info("No BareMetalHost found in ready state")
-		hcReconciler.handleErrorConditions(req, hardwareClassification, hwcc.NoBMHHost, errMessage, hwcc.ProfileMatchStatusEmpty)
+		hardwareClassification.Status.ProfileMatchStatus = hwcc.ProfileMatchStatusEmpty
+		hardwareClassification.Status.ErrorType = ""
+		hardwareClassification.Status.ErrorMessage = ""
 		return ctrl.Result{}, nil
 	}
 
@@ -138,14 +141,11 @@ func (hcReconciler *HardwareClassificationReconciler) Reconcile(req ctrl.Request
 	}
 
 	if setLabel {
-		hcReconciler.updateProfileMatchStatus(req, hardwareClassification, hwcc.ProfileMatchStatusMatched)
+		hardwareClassification.Status.ProfileMatchStatus = hwcc.ProfileMatchStatusMatched
 	} else {
-		hcReconciler.updateProfileMatchStatus(req, hardwareClassification, hwcc.ProfileMatchStatusUnMatched)
+		hcReconciler.Log.Info("No BareMtal Host found matching to expected hardware configurations")
+		hardwareClassification.Status.ProfileMatchStatus = hwcc.ProfileMatchStatusUnMatched
 	}
-
-	hardwareClassification.Status.ErrorMessage = "TestError"
-	hardwareClassification.Status.ErrorType = hwcc.LabelDeleteFailure
-	hardwareClassification.Status.ProfileMatchStatus = "unmatched"
 
 	return ctrl.Result{}, nil
 }
@@ -154,9 +154,5 @@ func (hcReconciler *HardwareClassificationReconciler) Reconcile(req ctrl.Request
 func (hcReconciler *HardwareClassificationReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&hwcc.HardwareClassification{}).
-		Watches(
-			&source.Kind{Type: &hwcc.HardwareClassification{}},
-			handler.Funcs{},
-		).
 		Complete(hcReconciler)
 }

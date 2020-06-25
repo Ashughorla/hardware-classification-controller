@@ -146,10 +146,10 @@ type HardwareClassificationStatus struct {
 	ErrorType ErrorType `json:"errorType,omitempty"`
 
 	// ProfileMatchStatus identifies whether a applied profile is matches or not
-	ProfileMatchStatus ProfileMatchStatus `json:"profileMatchStatus"`
+	ProfileMatchStatus ProfileMatchStatus `json:"profileMatchStatus,omitempty"`
 
 	// The last error message reported by the hardwareclassification system
-	ErrorMessage string `json:"errorMessage"`
+	ErrorMessage string `json:"errorMessage,omitempty"`
 }
 
 // +kubebuilder:object:root=true

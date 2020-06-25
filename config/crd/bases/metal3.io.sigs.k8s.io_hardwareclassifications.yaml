@@ -102,9 +102,11 @@ spec:
                     profile
                   properties:
                     maximumSizeGB:
+                      format: int64
                       minimum: 1
                       type: integer
                     minimumSizeGB:
+                      format: int64
                       minimum: 1
                       type: integer
                   type: object
@@ -127,9 +129,6 @@ spec:
               description: ProfileMatchStatus identifies whether a applied profile
                 is matches or not
               type: string
-          required:
-          - errorMessage
-          - profileMatchStatus
           type: object
       type: object
   version: v1alpha1
