@@ -13,6 +13,34 @@ spec:
     description: Profile Match Status
     name: ProfileMatchStatus
     type: string
+  - JSONPath: .status.matchedCount
+    description: Total Matched hosts.
+    name: MatchedHosts
+    type: integer
+  - JSONPath: .status.unmatchedCount
+    description: Total Unmatched hosts.
+    name: UnmatchedHosts
+    type: integer
+  - JSONPath: .status.errorHosts
+    description: Total error hosts.
+    name: ErrorHosts
+    type: integer
+  - JSONPath: .status.registrationErrorHosts
+    description: Total hosts in Registration error state.
+    name: RegistrationErrorHosts
+    type: integer
+  - JSONPath: .status.introspectionErrorHosts
+    description: Total hosts in Introspection error state.
+    name: IntrospectionErrorHosts
+    type: integer
+  - JSONPath: .status.provisioningErrorHosts
+    description: Total hosts in Provisioning error state.
+    name: ProvisioningErrorHosts
+    type: integer
+  - JSONPath: .status.powerMgmtErrorHosts
+    description: Total hosts in Power Management error state.
+    name: PowerMgmtErrorHosts
+    type: integer
   - JSONPath: .status.errorMessage
     description: Most recent error
     name: Error
@@ -150,6 +178,9 @@ spec:
           description: HardwareClassificationStatus defines the observed state of
             HardwareClassification
           properties:
+            errorHosts:
+              description: The count of Hosts in error state
+              type: integer
             errorMessage:
               description: The last error message reported by the hardwareclassification
                 system
@@ -157,10 +188,30 @@ spec:
             errorType:
               description: ErrorType indicates the type of failure encountered
               type: string
+            introspectionErrorHosts:
+              description: The count of hosts in introspection error state
+              type: integer
+            matchedCount:
+              description: The count of matched Hosts per profile reported by hardwareclassification
+                system
+              type: integer
+            powerMgmtErrorHosts:
+              description: The count of hosts in power management error state
+              type: integer
             profileMatchStatus:
               description: ProfileMatchStatus identifies whether a applied profile
                 is matches or not
               type: string
+            provisioningErrorHosts:
+              description: The count of hosts in provisioning error state
+              type: integer
+            registrationErrorHosts:
+              description: The count of hosts in registration error state
+              type: integer
+            unmatchedCount:
+              description: The count of unmatched Hosts per profile reported by hardwareclassification
+                system
+              type: integer
           type: object
       type: object
   version: v1alpha1

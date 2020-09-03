@@ -18,15 +18,19 @@ package hcmanager
 import (
 	"context"
 	"errors"
+	"net"
 
 	bmh "github.com/metal3-io/baremetal-operator/pkg/apis/metal3/v1alpha1"
 	hwcc "github.com/metal3-io/hardware-classification-controller/api/v1alpha1"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
 	//LabelName initial name to the label key as hardware classification group
 	LabelName = "hardwareclassification.metal3.io/"
+	//FailedLabelName initial name to the label key as hardware classification group
+	FailedLabelName = "hardwareclassification-error"
 	//Status extract the baremetal host for status ready
 	Status = "ready"
 	//DefaultLabel if label is missing from the Extracted Hardware Profile
@@ -42,25 +46,28 @@ const (
 )
 
 //FetchBmhHostList this function will fetch and return baremetal hosts in ready state
-func (mgr HardwareClassificationManager) FetchBmhHostList(Namespace string) ([]bmh.BareMetalHost, bmh.BareMetalHostList, error) {
+func (mgr HardwareClassificationManager) FetchBmhHostList(hcMetaData v1.ObjectMeta) ([]bmh.BareMetalHost, []bmh.BareMetalHost, bmh.BareMetalHostList, error) {
 	ctx := context.Background()
 	bmhHostList := bmh.BareMetalHostList{}
+	var failedHostList []bmh.BareMetalHost
 	var validHostList []bmh.BareMetalHost
 	opts := &client.ListOptions{
-		Namespace: Namespace,
+		Namespace: hcMetaData.Namespace,
 	}
 	// Get list of BareMetalHost from BMO
 	err := mgr.client.List(ctx, &bmhHostList, opts)
 	if err != nil {
-		return validHostList, bmhHostList, errors.New(err.Error())
+		return validHostList, failedHostList, bmhHostList, errors.New(err.Error())
 	}
 	// Get hosts in ready status from bmhHostList
 	for _, host := range bmhHostList.Items {
 		if host.Status.Provisioning.State == "ready" {
 			validHostList = append(validHostList, host)
+		} else if host.Status.OperationalStatus == "error" {
+			failedHostList = append(failedHostList, host)
 		}
 	}
-	return validHostList, bmhHostList, nil
+	return validHostList, failedHostList, bmhHostList, nil
 }
 
 //ConvertBytesToGb it converts the Byte into GB
@@ -76,6 +83,38 @@ func SetStatus(hwc *hwcc.HardwareClassification,
 	hwc.Status.ProfileMatchStatus = status
 	hwc.Status.ErrorType = errorType
 	hwc.Status.ErrorMessage = errorMessage
+}
+
+//SetHostCount update Matched & Unmatched Hosts in hardware classification status
+func SetHostCount(hwc *hwcc.HardwareClassification, MatchedHost hwcc.MatchedCount, UnmatchedHost hwcc.UnmatchedCount) {
+	hwc.Status.MatchedCount = MatchedHost
+	hwc.Status.UnmatchedCount = UnmatchedHost
+}
+
+//SetErrorHostCount update count of Error state Hosts in hardware classification status
+func SetErrorHostCount(hwc *hwcc.HardwareClassification, failedHosts []bmh.BareMetalHost) {
+	registrationErrorCount := 0
+	introspectionErrorCount := 0
+	provisioningErrorCount := 0
+	powerMgmtErrorCount := 0
+	for _, host := range failedHosts {
+		if host.Status.ErrorType == "registration error" {
+			registrationErrorCount += 1
+		} else if host.Status.ErrorType == "inspection error" {
+			introspectionErrorCount += 1
+		} else if host.Status.ErrorType == "provisioning error" {
+			provisioningErrorCount += 1
+		} else if host.Status.ErrorType == "power management error" {
+			powerMgmtErrorCount += 1
+		} else {
+			continue
+		}
+	}
+	hwc.Status.ErrorHosts = hwcc.ErrorHosts(len(failedHosts))
+	hwc.Status.RegistrationErrorHosts = hwcc.RegistrationErrorHosts(registrationErrorCount)
+	hwc.Status.IntrospectionErrorHosts = hwcc.IntrospectionErrorHosts(introspectionErrorCount)
+	hwc.Status.ProvisioningErrorHosts = hwcc.ProvisioningErrorHosts(provisioningErrorCount)
+	hwc.Status.PowerMgmtErrorHosts = hwcc.PowerMgmtErrorHosts(powerMgmtErrorCount)
 }
 
 //ValidateExtractedHardwareProfile it will validate the extracted hardware profile and log the warnings

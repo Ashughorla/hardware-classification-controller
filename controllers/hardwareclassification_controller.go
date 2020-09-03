@@ -17,6 +17,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	hwcc "github.com/metal3-io/hardware-classification-controller/api/v1alpha1"
@@ -92,11 +93,20 @@ func (hcReconciler *HardwareClassificationReconciler) Reconcile(req ctrl.Request
 	}
 
 	//Fetch baremetal host list for the given namespace
-	hostList, bmhList, err := hcManager.FetchBmhHostList(hardwareClassification.ObjectMeta.Namespace)
+	hostList, failedHostList, bmhList, err := hcManager.FetchBmhHostList(hardwareClassification.ObjectMeta)
 	if err != nil {
 		hcmanager.SetStatus(hardwareClassification, hwcc.ProfileMatchStatusEmpty, hwcc.FetchBMHListFailure, err.Error())
 		hwcLog.Error(err, err.Error())
 		return ctrl.Result{}, nil
+	}
+
+	if _, ok := hardwareClassification.ObjectMeta.Labels["hardwareclassification-error"]; ok {
+		if len(failedHostList) > 0 {
+			failedError := hcManager.LabelFailedHost(ctx, hardwareClassification.ObjectMeta, failedHostList)
+			if len(failedError) > 0 {
+				hwcLog.Error(nil, strings.Join(failedError, ","))
+			}
+		}
 	}
 
 	if len(hostList) == 0 {
@@ -128,6 +138,17 @@ func (hcReconciler *HardwareClassificationReconciler) Reconcile(req ctrl.Request
 			hwcc.Empty, hwcc.NOError)
 		hwcLog.Info("Updated profile status", "ProfileMatchStatus", hwcc.ProfileMatchStatusUnMatched)
 	}
+
+	// Below condition will set Matched & Unmatched count of Hosts in HWCC status
+	fmt.Println("Hostlist length:", len(hostList))
+	fmt.Println("Valid Hosts length:", len(validHosts))
+	fmt.Println("Failed Hosts length:", len(failedHostList))
+	if len(hostList) > 0 {
+		hcmanager.SetHostCount(hardwareClassification, hwcc.MatchedCount(len(validHosts)), hwcc.UnmatchedCount(len(hostList)-len(validHosts)))
+	} else {
+		hcmanager.SetHostCount(hardwareClassification, hwcc.MatchedCountEmpty, hwcc.UnmatchedCountEmpty)
+	}
+	hcmanager.SetErrorHostCount(hardwareClassification, failedHostList)
 
 	return ctrl.Result{}, nil
 }
