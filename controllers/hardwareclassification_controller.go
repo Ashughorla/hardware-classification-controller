@@ -112,7 +112,7 @@ func (hcReconciler *HardwareClassificationReconciler) Reconcile(req ctrl.Request
 	if len(hostList) == 0 {
 		hcmanager.SetStatus(hardwareClassification, hwcc.ProfileMatchStatusEmpty, hwcc.Empty, hwcc.NoBaremetalHost)
 		hwcLog.Info(hwcc.NoBaremetalHost)
-		return ctrl.Result{}, nil
+		//return ctrl.Result{}, nil
 	}
 
 	//Extract the hardware details from the baremetal host list
