@@ -149,6 +149,10 @@ func (hcReconciler *HardwareClassificationReconciler) Reconcile(req ctrl.Request
 		hcmanager.SetHostCount(hardwareClassification, hwcc.MatchedCountEmpty, hwcc.UnmatchedCountEmpty)
 	}
 	hcmanager.SetErrorHostCount(hardwareClassification, failedHostList)
+	if len(validHosts) == 0 && len(failedHostList) != 0 {
+		hcmanager.SetStatus(hardwareClassification, hwcc.ProfileMatchStatusEmpty,
+			hwcc.Empty, hwcc.NoBaremetalHost)
+	}
 
 	return ctrl.Result{}, nil
 }
