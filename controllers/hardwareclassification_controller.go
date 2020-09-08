@@ -17,7 +17,6 @@ package controllers
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	hwcc "github.com/metal3-io/hardware-classification-controller/api/v1alpha1"
@@ -141,21 +140,12 @@ func (hcReconciler *HardwareClassificationReconciler) Reconcile(req ctrl.Request
 	}
 
 	// Below condition will set Matched & Unmatched count of Hosts in HWCC status
-	fmt.Println("Hostlist length:", len(hostList))
-	fmt.Println("Valid Hosts length:", len(validHosts))
-	fmt.Println("Failed Hosts length:", len(failedHostList))
 	if len(hostList) > 0 {
 		hcmanager.SetHostCount(hardwareClassification, hwcc.MatchedCount(len(validHosts)), hwcc.UnmatchedCount(len(hostList)-len(validHosts)))
 	} else {
 		hcmanager.SetHostCount(hardwareClassification, hwcc.MatchedCountEmpty, hwcc.UnmatchedCountEmpty)
 	}
 	hcmanager.SetErrorHostCount(hardwareClassification, failedHostList)
-	/*hwcLog.Info(hwcc.NoBaremetalHost)
-	if len(validHosts) == 0 && len(failedHostList) != 0 {
-		hcmanager.SetStatus(hardwareClassification, hwcc.ProfileMatchStatusEmpty,
-			hwcc.Empty, hwcc.NoBaremetalHost)
-	}
-	*/
 
 	return ctrl.Result{}, nil
 }
