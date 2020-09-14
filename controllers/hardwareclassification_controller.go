@@ -111,6 +111,7 @@ func (hcReconciler *HardwareClassificationReconciler) Reconcile(req ctrl.Request
 	if len(hostList) == 0 {
 		hcmanager.SetStatus(hardwareClassification, hwcc.ProfileMatchStatusEmpty, hwcc.Empty, hwcc.NoBaremetalHost)
 		hwcLog.Info(hwcc.NoBaremetalHost)
+		hcmanager.SetHostCount(hardwareClassification, hwcc.MatchedCountEmpty, hwcc.UnmatchedCountEmpty)
 		hcmanager.SetErrorHostCount(hardwareClassification, failedHostList)
 		return ctrl.Result{}, nil
 	}
@@ -139,12 +140,8 @@ func (hcReconciler *HardwareClassificationReconciler) Reconcile(req ctrl.Request
 		hwcLog.Info("Updated profile status", "ProfileMatchStatus", hwcc.ProfileMatchStatusUnMatched)
 	}
 
-	// Below condition will set Matched & Unmatched count of Hosts in HWCC status
-	if len(hostList) > 0 {
-		hcmanager.SetHostCount(hardwareClassification, hwcc.MatchedCount(len(validHosts)), hwcc.UnmatchedCount(len(hostList)-len(validHosts)))
-	} else {
-		hcmanager.SetHostCount(hardwareClassification, hwcc.MatchedCountEmpty, hwcc.UnmatchedCountEmpty)
-	}
+	// Below code will set Matched, Unmatched and Error count of Hosts in HWCC status
+	hcmanager.SetHostCount(hardwareClassification, hwcc.MatchedCount(len(validHosts)), hwcc.UnmatchedCount(len(hostList)-len(validHosts)))
 	hcmanager.SetErrorHostCount(hardwareClassification, failedHostList)
 
 	return ctrl.Result{}, nil
