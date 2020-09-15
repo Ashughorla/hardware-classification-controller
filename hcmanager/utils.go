@@ -18,11 +18,9 @@ package hcmanager
 import (
 	"context"
 	"errors"
-	"net"
 
 	bmh "github.com/metal3-io/baremetal-operator/pkg/apis/metal3/v1alpha1"
 	hwcc "github.com/metal3-io/hardware-classification-controller/api/v1alpha1"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -46,13 +44,13 @@ const (
 )
 
 //FetchBmhHostList this function will fetch and return baremetal hosts in ready state
-func (mgr HardwareClassificationManager) FetchBmhHostList(hcMetaData v1.ObjectMeta) ([]bmh.BareMetalHost, []bmh.BareMetalHost, bmh.BareMetalHostList, error) {
+func (mgr HardwareClassificationManager) FetchBmhHostList(Namespace string) ([]bmh.BareMetalHost, []bmh.BareMetalHost, bmh.BareMetalHostList, error) {
 	ctx := context.Background()
 	bmhHostList := bmh.BareMetalHostList{}
 	var failedHostList []bmh.BareMetalHost
 	var validHostList []bmh.BareMetalHost
 	opts := &client.ListOptions{
-		Namespace: hcMetaData.Namespace,
+		Namespace: Namespace,
 	}
 	// Get list of BareMetalHost from BMO
 	err := mgr.client.List(ctx, &bmhHostList, opts)
@@ -86,13 +84,15 @@ func SetStatus(hwc *hwcc.HardwareClassification,
 }
 
 //SetHostCount update Matched & Unmatched Hosts in hardware classification status
-func SetHostCount(hwc *hwcc.HardwareClassification, MatchedHost hwcc.MatchedCount, UnmatchedHost hwcc.UnmatchedCount) {
+func (mgr HardwareClassificationManager) SetHostCount(hwc *hwcc.HardwareClassification, MatchedHost hwcc.MatchedCount, UnmatchedHost hwcc.UnmatchedCount) {
 	hwc.Status.MatchedCount = MatchedHost
+	mgr.Log.Info("Updating Matched host count")
 	hwc.Status.UnmatchedCount = UnmatchedHost
+	mgr.Log.Info("Updating Unmatched host count")
 }
 
 //SetErrorHostCount update count of Error state Hosts in hardware classification status
-func SetErrorHostCount(hwc *hwcc.HardwareClassification, failedHosts []bmh.BareMetalHost) {
+func (mgr HardwareClassificationManager) SetErrorHostCount(hwc *hwcc.HardwareClassification, failedHosts []bmh.BareMetalHost) {
 	registrationErrorCount := 0
 	introspectionErrorCount := 0
 	provisioningErrorCount := 0
@@ -110,6 +110,7 @@ func SetErrorHostCount(hwc *hwcc.HardwareClassification, failedHosts []bmh.BareM
 			continue
 		}
 	}
+	mgr.Log.Info("Updating ErrorHost count")
 	hwc.Status.ErrorHosts = hwcc.ErrorHosts(len(failedHosts))
 	hwc.Status.RegistrationErrorHosts = hwcc.RegistrationErrorHosts(registrationErrorCount)
 	hwc.Status.IntrospectionErrorHosts = hwcc.IntrospectionErrorHosts(introspectionErrorCount)

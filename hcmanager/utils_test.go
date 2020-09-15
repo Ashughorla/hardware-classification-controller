@@ -41,7 +41,7 @@ var _ = Describe("HCManager", func() {
 		func(tc testCaseFetchBMH) {
 			c := fakeclient.NewFakeClientWithScheme(setupSchemeMm(), getHosts()...)
 			hcManager := NewHardwareClassificationManager(c, klogr.New())
-			result, _, err := hcManager.FetchBmhHostList(tc.namespace)
+			result, _, _, err := hcManager.FetchBmhHostList(tc.namespace)
 			if tc.expectedError {
 				Expect(err).To(HaveOccurred())
 			} else if len(tc.expectedResult) == 0 {

@@ -92,7 +92,7 @@ func (hcReconciler *HardwareClassificationReconciler) Reconcile(req ctrl.Request
 	}
 
 	//Fetch baremetal host list for the given namespace
-	hostList, failedHostList, bmhList, err := hcManager.FetchBmhHostList(hardwareClassification.ObjectMeta)
+	hostList, failedHostList, bmhList, err := hcManager.FetchBmhHostList(hardwareClassification.ObjectMeta.Namespace)
 	if err != nil {
 		hcmanager.SetStatus(hardwareClassification, hwcc.ProfileMatchStatusEmpty, hwcc.FetchBMHListFailure, err.Error())
 		hwcLog.Error(err, err.Error())
@@ -111,8 +111,8 @@ func (hcReconciler *HardwareClassificationReconciler) Reconcile(req ctrl.Request
 	if len(hostList) == 0 {
 		hcmanager.SetStatus(hardwareClassification, hwcc.ProfileMatchStatusEmpty, hwcc.Empty, hwcc.NoBaremetalHost)
 		hwcLog.Info(hwcc.NoBaremetalHost)
-		hcmanager.SetHostCount(hardwareClassification, hwcc.MatchedCountEmpty, hwcc.UnmatchedCountEmpty)
-		hcmanager.SetErrorHostCount(hardwareClassification, failedHostList)
+		hcManager.SetHostCount(hardwareClassification, hwcc.MatchedCountEmpty, hwcc.UnmatchedCountEmpty)
+		hcManager.SetErrorHostCount(hardwareClassification, failedHostList)
 		return ctrl.Result{}, nil
 	}
 
@@ -141,8 +141,8 @@ func (hcReconciler *HardwareClassificationReconciler) Reconcile(req ctrl.Request
 	}
 
 	// Below code will set Matched, Unmatched and Error count of Hosts in HWCC status
-	hcmanager.SetHostCount(hardwareClassification, hwcc.MatchedCount(len(validHosts)), hwcc.UnmatchedCount(len(hostList)-len(validHosts)))
-	hcmanager.SetErrorHostCount(hardwareClassification, failedHostList)
+	hcManager.SetHostCount(hardwareClassification, hwcc.MatchedCount(len(validHosts)), hwcc.UnmatchedCount(len(hostList)-len(validHosts)))
+	hcManager.SetErrorHostCount(hardwareClassification, failedHostList)
 
 	return ctrl.Result{}, nil
 }
