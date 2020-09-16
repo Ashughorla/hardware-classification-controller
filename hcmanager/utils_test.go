@@ -32,36 +32,41 @@ import (
 var _ = Describe("HCManager", func() {
 
 	type testCaseFetchBMH struct {
-		namespace      string
-		expectedError  bool
-		expectedResult []bmh.BareMetalHost
+		namespace          string
+		expectedError      bool
+		expectedResult     []bmh.BareMetalHost
+		expectedErrorHosts []bmh.BareMetalHost
 	}
 
 	DescribeTable("Test fetch BaremetalHost list",
 		func(tc testCaseFetchBMH) {
 			c := fakeclient.NewFakeClientWithScheme(setupSchemeMm(), getHosts()...)
 			hcManager := NewHardwareClassificationManager(c, klogr.New())
-			result, _, _, err := hcManager.FetchBmhHostList(tc.namespace)
+			result, errorHosts, _, err := hcManager.FetchBmhHostList(tc.namespace)
 			if tc.expectedError {
 				Expect(err).To(HaveOccurred())
 			} else if len(tc.expectedResult) == 0 {
 				Expect(len(result)).To(BeZero())
+				Expect(len(errorHosts)).To(BeZero())
 			} else {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(result).Should(Equal(tc.expectedResult))
+				Expect(errorHosts).Should(Equal(tc.expectedErrorHosts))
 			}
 		},
 		Entry("Should fetch BaremetalHosts in ready state and under metal3 namespace",
 			testCaseFetchBMH{
-				namespace:      getNamespace(),
-				expectedError:  false,
-				expectedResult: getExpectedResult()},
+				namespace:          getNamespace(),
+				expectedError:      false,
+				expectedResult:     getExpectedResult(),
+				expectedErrorHosts: getErrorHosts()},
 		),
 		Entry("Should return empty result while fetching BaremetalHosts",
 			testCaseFetchBMH{
-				namespace:      "sample",
-				expectedError:  false,
-				expectedResult: []bmh.BareMetalHost{}},
+				namespace:          "sample",
+				expectedError:      false,
+				expectedResult:     []bmh.BareMetalHost{},
+				expectedErrorHosts: []bmh.BareMetalHost{}},
 		),
 	)
 

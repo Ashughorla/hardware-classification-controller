@@ -240,6 +240,18 @@ func getExpectedBMHList() bmh.BareMetalHostList {
 	return bmhHostList
 }
 
+func getErrorHosts() []bmh.BareMetalHost {
+	host5 := getHost()
+	host5.ObjectMeta.Name = "host-5"
+	host5.Status.Provisioning = bmh.ProvisionStatus{
+		State: bmh.StateRegistrationError,
+	}
+	host5.Status.ErrorType = bmh.RegistrationError
+	host5.Status.OperationalStatus = bmh.OperationalStatusError
+	host5.Status.HardwareDetails = &bmh.HardwareDetails{}
+	return []bmh.BareMetalHost{host5}
+}
+
 func getExpectedComparedHost() []string {
 	return []string{"host-0", "host-3"}
 }
@@ -302,5 +314,13 @@ func getHosts() []runtime.Object {
 	host3 := host
 	host3.ObjectMeta.Name = "host-3"
 
-	return []runtime.Object{&host, &host1, &host2, &host3}
+	host5 := host
+	host5.ObjectMeta.Name = "host-5"
+	host5.Status.Provisioning = bmh.ProvisionStatus{
+		State: bmh.StateRegistrationError,
+	}
+	host5.Status.ErrorType = bmh.RegistrationError
+	host5.Status.OperationalStatus = bmh.OperationalStatusError
+	host5.Status.HardwareDetails = &bmh.HardwareDetails{}
+	return []runtime.Object{&host, &host1, &host2, &host3, &host5}
 }
