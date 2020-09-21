@@ -95,6 +95,8 @@ func (hcReconciler *HardwareClassificationReconciler) Reconcile(req ctrl.Request
 	hostList, failedHostList, bmhList, err := hcManager.FetchBmhHostList(hardwareClassification.ObjectMeta.Namespace)
 	if err != nil {
 		hcmanager.SetStatus(hardwareClassification, hwcc.ProfileMatchStatusEmpty, hwcc.FetchBMHListFailure, err.Error())
+		hcManager.SetHostCount(hardwareClassification, hwcc.MatchedCountEmpty, hwcc.UnmatchedCountEmpty)
+		hcManager.SetErrorHostCount(hardwareClassification, failedHostList)
 		hwcLog.Error(err, err.Error())
 		return ctrl.Result{}, nil
 	}
