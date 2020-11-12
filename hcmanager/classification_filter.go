@@ -16,9 +16,8 @@ limitations under the License.
 package hcmanager
 
 import (
-	hwcc "github.com/metal3-io/hardware-classification-controller/api/v1alpha1"
-
 	bmh "github.com/metal3-io/baremetal-operator/apis/metal3.io/v1alpha1"
+	hwcc "github.com/metal3-io/hardware-classification-controller/api/v1alpha1"
 )
 
 // MinMaxFilter it will perform the minimum and maximum comparison based on the value provided by the user and check for the valid host
@@ -28,6 +27,8 @@ func (mgr HardwareClassificationManager) MinMaxFilter(ProfileName string, HostLi
 		if !checkCPUCount(mgr, hardwareDetail.CPU, expectedHardwareprofile.Cpu, hardwareDetail.Hostname) ||
 			!checkRAM(mgr, hardwareDetail.RAMMebibytes, expectedHardwareprofile.Ram, hardwareDetail.Hostname) ||
 			!checkNICS(mgr, len(hardwareDetail.NIC), expectedHardwareprofile.Nic, hardwareDetail.Hostname) ||
+			!checkFirmware(mgr, hardwareDetail.Firmware, expectedHardwareprofile.Firmware, hardwareDetail.Hostname) ||
+			!checkSystemVendor(mgr, hardwareDetail.SystemVendor, expectedHardwareprofile.SystemVendor, hardwareDetail.Hostname) ||
 			!checkDiskDetails(mgr, hardwareDetail.Storage, expectedHardwareprofile.Disk, hardwareDetail.Hostname) {
 			continue
 		}
@@ -162,6 +163,32 @@ func checkDiskDetails(mgr HardwareClassificationManager, disks []bmh.Storage, ex
 				return false
 			}
 		}
+	}
+	return true
+}
+
+//checkFirmware this function checks the Firmware details
+func checkFirmware(mgr HardwareClassificationManager, firmware bmh.Firmware, expectedFirmware *hwcc.Firmware, bmhName string) bool {
+	if expectedFirmware == nil {
+		return true
+	}
+	if expectedFirmware.Bios.Vendor != firmware.BIOS.Vendor && expectedFirmware.Bios.Version != firmware.BIOS.Version {
+		mgr.Log.Info("Firmware Vendor", "BareMetalHost", bmhName, "Expected", expectedFirmware.Bios.Vendor, "Actual", firmware.BIOS.Vendor)
+		mgr.Log.Info("Firmware Version", "BareMetalHost", bmhName, "Expected", expectedFirmware.Bios.Version, "Actual", firmware.BIOS.Version)
+		return false
+	}
+	return true
+}
+
+//checkSystemvendor this function checks the SystemVendor details
+func checkSystemVendor(mgr HardwareClassificationManager, systemVendor bmh.HardwareSystemVendor, expectedSystemVendor *hwcc.SystemVendor, bmhName string) bool {
+	if expectedSystemVendor == nil {
+		return true
+	}
+	if expectedSystemVendor.Manufacturer != systemVendor.Manufacturer && expectedSystemVendor.ProductName != systemVendor.ProductName {
+		mgr.Log.Info("System Vendor Manufacturer", "BareMetalHost", bmhName, "Expected", expectedSystemVendor.Manufacturer, "Actual", systemVendor.Manufacturer)
+		mgr.Log.Info("System Vendor Product Name", "BareMetalHost", bmhName, "Expected", expectedSystemVendor.ProductName, "Actual", systemVendor.ProductName)
+		return false
 	}
 	return true
 }

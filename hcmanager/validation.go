@@ -32,6 +32,7 @@ func (mgr HardwareClassificationManager) ExtractAndValidateHardwareDetails(extra
 			// Get the CPU details from the baremetal host and validate it
 			if extractedProfile.Cpu != nil {
 				hardwareDetails.CPU = bmh.CPU{
+					Arch:           host.Status.HardwareDetails.CPU.Arch,
 					Count:          host.Status.HardwareDetails.CPU.Count,
 					ClockMegahertz: bmh.ClockSpeed(host.Status.HardwareDetails.CPU.ClockMegahertz),
 				}
@@ -51,6 +52,23 @@ func (mgr HardwareClassificationManager) ExtractAndValidateHardwareDetails(extra
 			// Get the RAM details from the baremetal host and validate it
 			if extractedProfile.Ram != nil {
 				hardwareDetails.RAMMebibytes = host.Status.HardwareDetails.RAMMebibytes / 1024
+			}
+			// Get the Firmware details from the baremetal host and validate it
+			if extractedProfile.Firmware != nil {
+				hardwareDetails.Firmware = bmh.Firmware{
+					BIOS: bmh.BIOS{
+						Date:    host.Status.HardwareDetails.Firmware.BIOS.Date,
+						Vendor:  host.Status.HardwareDetails.Firmware.BIOS.Vendor,
+						Version: host.Status.HardwareDetails.Firmware.BIOS.Version,
+					},
+				}
+			}
+			// Get the SystemVendor details from the baremetal host and validate it
+			if extractedProfile.SystemVendor != nil {
+				hardwareDetails.SystemVendor = bmh.HardwareSystemVendor{
+					Manufacturer: host.Status.HardwareDetails.SystemVendor.Manufacturer,
+					ProductName:  host.Status.HardwareDetails.SystemVendor.ProductName,
+				}
 			}
 
 			//Check if hardware details are not empty to add it in validhost

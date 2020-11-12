@@ -126,5 +126,24 @@ func (mgr HardwareClassificationManager) ValidateExtractedHardwareProfile(extrac
 			return errors.New("Invalid NIC details")
 		}
 	}
+
+	if extractedProfile.Firmware == nil {
+		mgr.Log.Info("Firmware details is not present")
+	} else {
+		if extractedProfile.Firmware.Bios.Vendor == "" &&
+			extractedProfile.Firmware.Bios.Version == "" {
+			return errors.New("Invalid Firmware details")
+		}
+	}
+
+	if extractedProfile.SystemVendor == nil {
+		mgr.Log.Info("System Vendor details is not present")
+	} else {
+		if extractedProfile.SystemVendor.Manufacturer == "" &&
+			extractedProfile.SystemVendor.ProductName == "" {
+			return errors.New("System Vendor Firmware details")
+		}
+	}
+
 	return nil
 }
