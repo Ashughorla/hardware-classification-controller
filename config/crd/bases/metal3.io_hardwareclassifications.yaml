@@ -50,6 +50,8 @@ spec:
                 cpu:
                   description: Cpu contains cpu details extracted from the hardware profile
                   properties:
+                    architecture:
+                      type: string
                     maximumCount:
                       description: MaximumCount of cpu should be greater than 0 and greater than MinimumCount Ex. MaximumCount > 0 && MaximumCount > MinimumCount
                       minimum: 1
@@ -91,6 +93,18 @@ spec:
                       minimum: 1
                       type: integer
                   type: object
+                firmware:
+                  description: Firmware new struct
+                  properties:
+                    bios:
+                      description: Bios new struct
+                      properties:
+                        vendor:
+                          type: string
+                        version:
+                          type: string
+                      type: object
+                  type: object
                 nic:
                   description: Nic contains nic details extracted from the hardware profile
                   properties:
@@ -102,6 +116,8 @@ spec:
                       description: Minimum count should be greater than 0 Ex. MinimumCount > 0
                       minimum: 1
                       type: integer
+                    vendor:
+                      type: string
                   type: object
                 ram:
                   description: Ram contains ram details extracted from the hardware profile
@@ -114,6 +130,14 @@ spec:
                       description: MinimumSizeGB of Ram should be greater than 0 Ex. MinimumSizeGB > 0
                       minimum: 1
                       type: integer
+                  type: object
+                systemVendor:
+                  description: SystemVendor new struct
+                  properties:
+                    manufacturer:
+                      type: string
+                    productName:
+                      type: string
                   type: object
               type: object
           type: object

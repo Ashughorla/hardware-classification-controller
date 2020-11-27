@@ -2,9 +2,8 @@ package classifier
 
 import (
 	bmh "github.com/metal3-io/baremetal-operator/apis/metal3.io/v1alpha1"
-	ctrl "sigs.k8s.io/controller-runtime"
-
 	hwcc "github.com/metal3-io/hardware-classification-controller/api/v1alpha1"
+	ctrl "sigs.k8s.io/controller-runtime"
 )
 
 var log = ctrl.Log.WithName("classifier")
@@ -22,6 +21,12 @@ func ProfileMatchesHost(profile *hwcc.HardwareClassification, host *bmh.BareMeta
 	if !checkDisks(profile, host) {
 		return false
 	}
+	if !checkFirmware(profile, host) {
+		return false
+	}
+	if !checkSystemVendor(profile, host) {
+		return false
+	}
 	return true
 }
 
@@ -31,6 +36,15 @@ func checkRangeInt(min, max, count int) bool {
 	}
 	if max > 0 && count > max {
 		return false
+	}
+	return true
+}
+
+func checkStringEmpty(data ...string) bool {
+	for _, value := range data {
+		if value == "" {
+			return false
+		}
 	}
 	return true
 }

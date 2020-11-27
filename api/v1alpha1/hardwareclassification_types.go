@@ -48,10 +48,37 @@ type HardwareCharacteristics struct {
 	Nic *Nic `json:"nic,omitempty"`
 	// +optional
 	Ram *Ram `json:"ram,omitempty"`
+	// +optional
+	Firmware *Firmware `json:"firmware,omitempty"`
+	// +optional
+	SystemVendor *SystemVendor `json:"systemVendor,omitempty"`
+}
+
+// Firmware new struct
+type Firmware struct {
+	Bios Bios `json:"bios,omitempty"`
+}
+
+// Bios new struct
+type Bios struct {
+	// +optional
+	Vendor string `json:"vendor,omitempty"`
+	// +optional
+	Version string `json:"version,omitempty"`
+}
+
+// SystemVendor new struct
+type SystemVendor struct {
+	// +optional
+	Manufacturer string `json:"manufacturer,omitempty"`
+	// +optional
+	ProductName string `json:"productName,omitempty"`
 }
 
 // Cpu contains cpu details extracted from the hardware profile
 type Cpu struct {
+	// +optional
+	Architecture string `json:"architecture,omitempty"`
 	// +optional
 	// +kubebuilder:validation:Minimum=1
 	// MinimumCount of cpu should be greater than 0
@@ -104,6 +131,8 @@ type Disk struct {
 
 // Nic contains nic details extracted from the hardware profile
 type Nic struct {
+	// +optional
+	Vendor string `json:"vendor,omitempty"`
 	// +optional
 	// +kubebuilder:validation:Minimum=1
 	// Minimum count should be greater than 0
