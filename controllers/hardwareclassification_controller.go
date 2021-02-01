@@ -135,10 +135,10 @@ func (hcReconciler *HardwareClassificationReconciler) Reconcile(req ctrl.Request
 		return ctrl.Result{}, nil
 	}
 
-	failedHostList := fetchFailedBmhHostList()
-	fmt.Println("######## Faild Host List :", failedHostList, "########")
+	failedHostList := fetchFailedBmhHostList(bmhHostList)
+	fmt.Println("######## Faild Host List :", len(failedHostList), "########")
 	if len(failedHostList) > 0 {
-		changed := labelFailedHost(failedHostList)
+		changed := labelFailedHost(hcReconciler, failedHostList, ctx)
 		if changed {
 			hwcLog.Info("set label ", "failed host list", failedHostList)
 		}
@@ -221,7 +221,7 @@ func (hcReconciler *HardwareClassificationReconciler) SetupWithManager(mgr ctrl.
 		Complete(hcReconciler)
 }
 
-func labelFailedHost(failedHostList []bmh.BareMetalHost) bool {
+func labelFailedHost(hcReconciler *HardwareClassificationReconciler, failedHostList []bmh.BareMetalHost, ctx context.Context) bool {
 	for _, host := range failedHostList {
 		labels := host.GetLabels()
 		if labels == nil {
@@ -239,13 +239,15 @@ func labelFailedHost(failedHostList []bmh.BareMetalHost) bool {
 		}
 		labels[failedLabelName] = labelValue
 		host.SetLabels(labels)
+		if err := hcReconciler.Client.Update(ctx, &host); err != nil {
+			return false
+		}
 	}
 	return true
 }
 
-func fetchFailedBmhHostList() (failedHostList []bmh.BareMetalHost) {
+func fetchFailedBmhHostList(bmhHostList bmh.BareMetalHostList) (failedHostList []bmh.BareMetalHost) {
 	// Get hosts in error status from bmhHostList
-	bmhHostList := bmh.BareMetalHostList{}
 	for _, host := range bmhHostList.Items {
 		if host.Status.OperationalStatus == "error" {
 			failedHostList = append(failedHostList, host)
